@@ -16,11 +16,11 @@ client.on('ready', () => {
     console.log("Ready");
 });
 
-let status = 'idle';
-const musicQueue = [];
-let counter = 0
 
 client.on('messageCreate', async (message) => {
+    const musicQueue = [];
+    let status = 'idle';
+    let counter = 0
     let player = createAudioPlayer();
     let userInformation = {};
     const getContent = valueMessage => {
