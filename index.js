@@ -1,7 +1,7 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import play from 'play-dl'
-import { joinVoiceChannel, NoSubscriberBehavior, createAudioPlayer, createAudioResource } from "@discordjs/voice";
-
+import { joinVoiceChannel, AudioPlayerStatus , createAudioPlayer, createAudioResource } from "@discordjs/voice";
+import fetch from "node-fetch";
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -16,11 +16,14 @@ client.on('ready', () => {
     console.log("Ready");
 });
 
-client.on('messageCreate', async (message) => {
-    const musicQueue = [];
+let status = 'idle';
+const musicQueue = [];
+let counter = 0
 
+client.on('messageCreate', async (message) => {
+    let player = createAudioPlayer();
+    let userInformation = {};
     const getContent = valueMessage => {
-        console.log(valueMessage);
         let completMessage = '';
         for (let i = 1; i < valueMessage.length; i++) {
             completMessage += valueMessage[i] + ' '
@@ -30,20 +33,28 @@ client.on('messageCreate', async (message) => {
 
     //Buscar video por nombre
     const searchVideoByName = async name => {
-        const apiKey = 'AIzaSyAdM8RrI8XmW_84Ka88hJap4JqnUfd_-00';
+        const apiKey = 'AIzaSyA55Fiywruvh6ylPBhzh4r_-6INCbFncM0';
         const searchName = name;
         const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(searchName)}&type=video&key=${apiKey}`;
 
         return fetch(url)
             .then(response => response.json())
             .then(data => {
-                console.log(data.items[0]);
-                const videoId = data.items[0].id.videoId;
-                const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-                return videoUrl;
+                let exist = data.error
+                
+                if (exist) {
+                    message.channel.send(data.error.message);
+                    return false
+                } else {
+                    const videoId = data.items[0].id.videoId;
+                    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                    return videoUrl;
+                }
             })
             .catch(error => {
-                console.log(error);
+                console.log(error, 'aa');
+                message.channel.send(error);
+                return false
             });
     }
 
@@ -63,6 +74,11 @@ client.on('messageCreate', async (message) => {
 
     const playQueueMusic = async (urlVideo, userInformation) => {
         // Descargar el audio del video de YouTube
+        userInformation = {
+            channelId: message.member.voice.channel.id,
+            guildId: message.guild.id,
+            adapterCreator: message.guild.voiceAdapterCreator
+        };
         const stream = await play.stream(urlVideo);
 
         // Reproducir el audio en el canal de voz
@@ -70,67 +86,27 @@ client.on('messageCreate', async (message) => {
             inputType: stream.type
         })
 
-        let player = createAudioPlayer({
-            behaviors: {
-                noSubscriber: NoSubscriberBehavior.Play
-            }
-        })
-
         player.play(resource);
         connection(userInformation).subscribe(player);
     }
 
-    const getMusicTime = async urlVideo => {
-        return await play.video_basic_info(urlVideo).then(re => {
-            let timeSong = (Number(re.format[0].approxDurationMs) + 2000);
-            return timeSong;
-        }).catch(err => {
-            console.log(err);
-        });
-    }
-
-    let counter = 0;
     const playMusic = async (userInformation, timeSong = 1) => {
-        // Conectarse al canal de voz
-        let musicQueueProgress = setInterval(() => {
-            console.log(musicQueue.slice(counter, (counter + 1)))
-            if (musicQueue.slice(counter, (counter + 1)).length === 0) {
-                console.log('fuera');
-                counter = 0;
-                clearInterval(musicQueueProgress);
-                musicQueue.splice(0, musicQueue.length);
-                connection(userInformation).disconnect();
-            } else {
-                playQueueMusic(musicQueue[counter], userInformation);
-                clearInterval(musicQueueProgress);
-                getMusicTime(musicQueue[counter]).then(value => {
-                    playMusic(userInformation, value);
-                });
-            }
-            counter += 1;
-            console.log(timeSong);
-        }, timeSong);
-        /*for (let i = 0, time = 0; i < musicQueue.length; i++) {
-            setTimeout(async () => {
-                console.log(musicQueue[i]);
-            }, i * 3000)
-        }*/
+        playQueueMusic(musicQueue[counter], userInformation);
+        status = 'playing'
+        message.channel.send(`you are playing ${musicQueue[counter]}, ${musicQueue.length} videos in the list`);
     }
     // Comprobar si el autor del mensaje está en un canal de voz
-    /*if (!message.member.voice.channel) {
-        return message.reply('¡Por favor únete a un canal de voz primero!');
-    }*/
 
     // Comprobar si el mensaje viene de un canal de voz
     if (!message.guild) return;
 
-    /*switch (message.content) {
-        case startsWith('!play'):
-
-    }*/
-    if (message.content.startsWith('!play')) {
+    if (message.content.startsWith('!plays')) {
+        if (!message.member.voice.channel) {
+            return message.reply('¡Por favor únete a un canal de voz primero!');
+        }
         const contentMessage = message.content.split(' ');
-        let userInformation = {
+
+        userInformation = {
             channelId: message.member.voice.channel.id,
             guildId: message.guild.id,
             adapterCreator: message.guild.voiceAdapterCreator
@@ -138,22 +114,90 @@ client.on('messageCreate', async (message) => {
 
         if (validateUrl(contentMessage[1])) {
             musicQueue.push(contentMessage[1]);
-            console.log(musicQueue)
-
+            console.log(musicQueue.length)
             if (musicQueue.length === 1) {
+            
                 playMusic(userInformation);
             }
-
         } else {
             await searchVideoByName(getContent(contentMessage)).then(re => {
+                if (re == false) {
+                    return
+                }
                 musicQueue.push(re);
-
-                if (musicQueue.length === 1) {
+                console.log(status)
+                if (musicQueue.length === 1 && status == 'idle') {
                     playMusic(userInformation)
+                } else {
+                    // counter += 1;
+                    message.channel.send(`se ha guardado en la cola de reproduccion ${musicQueue[musicQueue.length - 1]}, ${musicQueue.length} videos in the list`);
                 }
             });
         }
     }
+    if (message.content === '!stop') {
+        // Stop playing the current song
+        userInformation = {
+            channelId: message.member.voice.channel.id,
+            guildId: message.guild.id,
+            adapterCreator: message.guild.voiceAdapterCreator
+        };
+        player.stop();
+        message.channel.send(`Adios papi`);
+
+        // Clear the music queue
+        musicQueue.splice(0, musicQueue.length);
+        // Disconnect from the voice channel
+        connection(userInformation).disconnect();
+    }
+    if (message.content === '!next') {
+        // musicQueue.shift();
+        userInformation = {
+            channelId: message.member.voice.channel.id,
+            guildId: message.guild.id,
+            adapterCreator: message.guild.voiceAdapterCreator
+        };
+        counter += 1 // Remove the first item from the queue
+        if (musicQueue.length === 0 || counter == musicQueue.length) {
+            console.log('Queue is empty, disconnecting...');
+            connection(userInformation).disconnect();
+            counter = 0
+            return;
+        }
+        playMusic(userInformation); // Play the next item in the queue
+    }
+
+    if (message.content === '!back') {
+        // musicQueue.shift();
+        if (counter > 0) {
+            counter -= 1 // Remove the first item from the queue
+            playMusic(userInformation); // Play the next item in the queue
+        }
+    }
+
+    if (message.content === '!test') {
+        console.log(musicQueue, counter)
+    }
+
+    player.on(AudioPlayerStatus.Idle, () => {
+        status = 'idle'
+        // musicQueue.shift(); // Remove the first item from the queue
+        counter += 1
+        if (musicQueue.length === 0 || counter == musicQueue.length) {
+            console.log('Queue is empty, disconnecting...');
+            counter = 0
+            connection(userInformation).disconnect();
+            return;
+        }
+        playMusic(userInformation); // Play the next item in the queue
+        console.log('Song has finished playing.');
+
+    });
+    player.on(AudioPlayerStatus.Playing, (e) => {
+        status = 'playing'
+        console.log('Song is playing.', status);
+        
+    });
 });
 
 client.login('ODk0NjE3MzIwNjU4NDM2MTQ2.GZOkzL.5Cd2AOiu0GZsColDM3MQL1wTU3h7fwVFBsplRw');
