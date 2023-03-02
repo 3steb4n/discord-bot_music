@@ -7,6 +7,7 @@ import { Configuration, OpenAIApi } from 'openai';
 const configuration = new Configuration({
     apiKey: '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',
   });
+
 const openai = new OpenAIApi(configuration);
 const client = new Client({
     intents: [
@@ -240,6 +241,11 @@ client.on('messageCreate', async (message) => {
         })
         message.channel.send(`***list:*** ${text}`);
     }
+
+    player.on('error', error => {
+        console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
+        player.play(getNextResource());
+    });
 
     player.on(AudioPlayerStatus.Idle, () => {
         let name = message.channelId
