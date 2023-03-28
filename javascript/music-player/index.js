@@ -97,7 +97,6 @@ export let xd = (client) => client.on('messageCreate', async (message) => {
                 player.stop();
                 connection.destroy();
                 musicQueue.splice(index)
-                console.log('?????')
                 message.channel.send(`Adios papi`);
                 // Seems to be reconnecting to a new channel - ignore disconnect
             } catch (error) {
@@ -230,9 +229,8 @@ export let xd = (client) => client.on('messageCreate', async (message) => {
         };
         player.stop();
         connection.destroy();
-        musicQueue.splice(0, musicQueue.length);
+        musicQueue.splice(index)
         message.channel.send(`Adios papi`);
-
     }
 
     if (message.content === '!next') {
