@@ -227,6 +227,8 @@ export let xd = (client) => client.on('messageCreate', async (message) => {
                 adapterCreator: message.guild.voiceAdapterCreator
             });
         };
+        let name = message.guild.name
+        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         player.stop();
         connection.destroy();
         musicQueue.splice(index)
