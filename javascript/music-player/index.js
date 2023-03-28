@@ -279,14 +279,13 @@ export let xd = (client) => client.on('messageCreate', async (message) => {
         let prompt = getContent(contentMessage)
 
         const response = await openai.createCompletion({
-            model: "gpt-3.5-turbo",
+            model: "text-davinci-003",
             prompt: prompt,
-            temperature: 0.9,
-            max_tokens: 150,
+            temperature: 0.7,
+            max_tokens: 256,
             top_p: 1,
             frequency_penalty: 0,
-            presence_penalty: 0.6,
-            stop: [" Human:", " Panita:"],
+            presence_penalty: 0,
         });
         message.channel.send(`\`\`\`${response.data.choices[0].text}\`\`\``)
         // message.channel.send(`\`\`\`${prompt}\`\`\``)
