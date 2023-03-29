@@ -296,6 +296,7 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
     if (message.content === '!list') {
         let name = message.guild.name
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        if (index == -1)return
 
         let text = ''
         musicQueue[index][name].videoName.forEach((e) => {
