@@ -1,12 +1,7 @@
 import { Client, GatewayIntentBits } from 'discord.js';
-import { joinVoiceChannel, VoiceConnectionStatus, AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior } from "@discordjs/voice";
-import play from 'play-dl'
-import fetch from "node-fetch";
 import { Configuration, OpenAIApi } from 'openai';
-import { xd } from './javascript/music-player/index.js';
-const configuration = new Configuration({
-    apiKey: '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',
-});
+import { musicBot } from './javascript/music-player/index.js';
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -20,12 +15,8 @@ client.on('ready', () => {
     console.log("Ready");
 });
 
-xd(client)
+musicBot(client)
 
-const commands = ['!stop', '!next', '!back', '!list', '!test', '!question']
-
-const musicQueue = [];
-// client.on('messageCreate', async (message) => {
 
 //     if (message.content.startsWith('!')) {
 //         console.log(commands)

@@ -10,7 +10,7 @@ const configuration = new Configuration({
     apiKey: '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',
 });
 const openai = new OpenAIApi(configuration);
-export let xd = (client) => client.on('messageCreate', async (message) => {
+export let musicBot = (client) => client.on('messageCreate', async (message) => {
 
     
     let player = createAudioPlayer();
@@ -80,33 +80,21 @@ export let xd = (client) => client.on('messageCreate', async (message) => {
     }
 
     let connection = getVoiceConnection(message.guild.id);
-
-    console.log(connection == undefined)
-
-    if ( connection != undefined){        
-        connection.on(VoiceConnectionStatus.Disconnected , () => {
-            try {
-                let name = message.guild.name
-                let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-                
-                connection = joinVoiceChannel({
-                    channelId: message.member.voice.channel.id,
-                    guildId: message.guild.id,
-                    adapterCreator: message.guild.voiceAdapterCreator
-                });
-                player.stop();
-                connection.destroy();
-                musicQueue.splice(index)
-                message.channel.send(`Adios papi`);
-                // Seems to be reconnecting to a new channel - ignore disconnect
-            } catch (error) {
-                // Seems to be a real disconnect which SHOULDN'T be recovered from
-                connection.destroy();
-            }
+    
+    if (connection != undefined) {
+        connection.on(VoiceConnectionStatus.Disconnected , (e) => {
+    
+            let name = message.guild.name
+            let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+    
+            player.stop();
+            connection.destroy();
+            musicQueue.splice(index)
+            message.channel.send(`Adios papi`);
     
         });
     }
-
+    
 
 
     const playQueueMusic = async (urlVideo) => {
