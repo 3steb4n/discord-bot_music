@@ -11,6 +11,9 @@ const client = new Client({
     ]
 });
 
+const emitter = new EventEmitter()
+emitter.setMaxListeners(0)
+
 client.on('ready', () => {
     console.log("Ready");
 });

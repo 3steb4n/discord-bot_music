@@ -88,7 +88,7 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
     
             player.stop();
-            connection.destroy();
+            // connection.destroy();
             musicQueue.splice(index)
             message.channel.send(`Adios papi`);
     
@@ -279,12 +279,6 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
         // message.channel.send(`\`\`\`${prompt}\`\`\``)
     }
 
-    // connection.on('stateChange', (old_state, new_state) => {
-    //     if (old_state.status === VoiceConnectionStatus.Ready && new_state.status === VoiceConnectionStatus.Connecting) {
-    //         connection.configureNetworking();
-    //     }
-    // });
-
     if (message.content === '!test') {
         console.log('-------------------------------------------------------------------------------')
         musicQueue.forEach((e) => {
@@ -328,8 +322,6 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
         connection.configureNetworking();
         player.unpause()
     });
-
-    return
 });
 
 
