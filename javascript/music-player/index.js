@@ -86,11 +86,7 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
     
             let name = message.guild.name
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-            connection = joinVoiceChannel({
-                channelId: message.member.voice.channel.id,
-                guildId: message.guild.id,
-                adapterCreator: message.guild.voiceAdapterCreator
-            });
+    
             player.stop();
             connection.destroy();
             musicQueue.splice(index)
