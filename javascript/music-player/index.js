@@ -205,7 +205,7 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
 
     if (message.content === '!stop') {
         // Stop playing the current song
-        if (!message.member.voice.channel) {
+        if (!message.member.voice.channel || connection == undefined) {
             return
     
         } else {
