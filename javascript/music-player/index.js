@@ -93,7 +93,7 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
             message.channel.send(`Adios papi`);
         });
 
-        connection.removeListener(VoiceConnectionStatus.Disconnected, () => {
+        connection.removeListener('disconnected', () => {
             console.log('ddwsd')
         })
 
