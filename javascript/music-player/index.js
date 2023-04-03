@@ -30,7 +30,7 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
     }
 
     const searchVideoByName = async (name, status) => {
-        const apiKey = 'AIzaSyA0HrKNE6MrbHqs22gdzuZgkHvZ-O5QvcA';
+        const apiKey = 'AIzaSyCgnrrfyYgGb3t4TXk1yC8qtau5XlYcAzY';
         const searchName = name
         let url = ''
         let check = status
@@ -80,10 +80,10 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
     }
 
     let connection = getVoiceConnection(message.guild.id);
-    
+
     if (connection != undefined) {
-        connection.on(VoiceConnectionStatus.Disconnected , (e) => {
-    
+        connection.once(VoiceConnectionStatus.Disconnected , (e) => {
+            console.log('aaaaaaa')
             let name = message.guild.name
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
     
@@ -93,10 +93,12 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
             message.channel.send(`Adios papi`);
         });
 
-        connection.removeListener('disconnected', () => {
-            console.log('ddwsd')
-        })
-
+    } else {
+        connection = joinVoiceChannel({
+            channelId: message.member.voice.channel.id,
+            guildId: message.guild.id,
+            adapterCreator: message.guild.voiceAdapterCreator
+        });
     }
     
 
@@ -151,11 +153,6 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
                             status: 'idle'
                         }
                     });
-                    connection = joinVoiceChannel({
-                        channelId: message.member.voice.channel.id,
-                        guildId: message.guild.id,
-                        adapterCreator: message.guild.voiceAdapterCreator
-                    });
                     index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                     playMusic(index, name)
 
@@ -190,17 +187,15 @@ export let musicBot = (client) => client.on('messageCreate', async (message) => 
                 if (musicQueue[index][name].url.length === 1 && musicQueue[index][name].status == 'idle') {
                     if (!message.member.voice.channel) {
                         return
-                
                     } else {
-                        connection = joinVoiceChannel({
-                            channelId: message.member.voice.channel.id,
-                            guildId: message.guild.id,
-                            adapterCreator: message.guild.voiceAdapterCreator
-                        });
+                        // connection = joinVoiceChannel({
+                        //     channelId: message.member.voice.channel.id,
+                        //     guildId: message.guild.id,
+                        //     adapterCreator: message.guild.voiceAdapterCreator
+                        // });
+                        playMusic(index, name)
                     };
-                    playMusic(index, name)
                 } else {
-                    // counter += 1;
                     message.channel.send(`se ha guardado en la cola de reproduccion ${musicQueue[index][name].url[musicQueue[index][name].url.length - 1]}, ${musicQueue[index][name].url.length} videos in the list`);
                 }
             });
