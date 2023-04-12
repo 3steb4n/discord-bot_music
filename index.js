@@ -2,7 +2,10 @@ import { Client, GatewayIntentBits } from 'discord.js';
 import { Configuration, OpenAIApi } from 'openai';
 import play from 'play-dl'
 import fetch from "node-fetch";
-import { joinVoiceChannel, VoiceConnectionStatus, AudioPlayerStatus, createAudioPlayer, createAudioResource, NoSubscriberBehavior, getVoiceConnection } from "@discordjs/voice";
+import { joinVoiceChannel, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection } from "@discordjs/voice";
+
+const musicQueue = [];
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -11,12 +14,6 @@ const client = new Client({
         GatewayIntentBits.GuildVoiceStates
     ]
 });
-
-client.on('ready', () => {
-    console.log("Ready");
-});
-
-const musicQueue = [];
 
 const configuration = new Configuration({
     apiKey: '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',
@@ -27,11 +24,9 @@ const openai = new OpenAIApi(configuration);
 client.on('voiceStateUpdate', (oldState, newState) => {
     // Check if the bot was disconnected
     if (oldState.channelId && !newState.channelId && oldState.member.user.id === client.user.id) {
-        console.log('The bot was disconnected from the voice channel.');
         let name = newState.guild.name
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         const connection = getVoiceConnection(newState.guild.id);
-        //   player.stop();
         if (connection != undefined)connection.destroy();
         musicQueue.splice(index)
     }
@@ -74,14 +69,12 @@ client.on('messageCreate', async (message) => {
             .then(data => {
                 let exist = data.error
 
-
                 if (exist) {
                     message.channel.send(data.error.message);
                     return false
                 } else {
                     if (data.items.length == 0) {
                         message.channel.send('Not avalaible content panita');
-
                         return false
                     }
                     if (check) {
@@ -327,6 +320,5 @@ client.on('messageCreate', async (message) => {
         player.unpause()
     });
 });
-
 
 client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
