@@ -17,12 +17,12 @@ client.on('ready', () => {
 });
 
 const musicQueue = [];
+
 const configuration = new Configuration({
     apiKey: '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',
 });
+
 const openai = new OpenAIApi(configuration);
-
-
 
 client.on('voiceStateUpdate', (oldState, newState) => {
     // Check if the bot was disconnected
@@ -39,6 +39,8 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 client.on('messageCreate', async (message) => {
     let player = createAudioPlayer();
+
+    let connection;
 
     const getContent = valueMessage => {
         let completMessage = '';
@@ -130,8 +132,6 @@ client.on('messageCreate', async (message) => {
         musicQueue[index][name].status = 'playing';
         message.channel.send(`you are playing ${musicQueue[index][name].url[counter]}, ${musicQueue[index][name].url.length} videos in the list`);
     }
-    
-    let connection;
 
     if (message.content.startsWith('!plays')) {
         if (!message.member.voice.channel) {
