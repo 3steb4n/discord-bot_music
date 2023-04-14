@@ -200,19 +200,17 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!stop') {
-        // Stop playing the current song
-        if (!message.member.voice.channel || connection == undefined) {
-            return
-
-        } else {
-            connection = joinVoiceChannel({
-                channelId: message.member.voice.channel.id,
-                guildId: message.guild.id,
-                adapterCreator: message.guild.voiceAdapterCreator
-            });
-        };
         let name = message.member.voice.channel.id
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        
+        if (index == -1) {
+            return
+        }
+        connection = joinVoiceChannel({
+            channelId: message.member.voice.channel.id,
+            guildId: message.guild.id,
+            adapterCreator: message.guild.voiceAdapterCreator
+        });
         player.stop();
         connection.destroy();
         musicQueue.splice(index)
