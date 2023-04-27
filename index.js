@@ -6,6 +6,13 @@ import { joinVoiceChannel, AudioPlayerStatus, createAudioPlayer, createAudioReso
 
 const musicQueue = [];
 
+const youtubeApi = [
+    'AIzaSyCgnrrfyYgGb3t4TXk1yC8qtau5XlYcAzY',
+    'AIzaSyA0HrKNE6MrbHqs22gdzuZgkHvZ-O5QvcA',
+    'AIzaSyA55Fiywruvh6ylPBhzh4r_-6INCbFncM0'
+
+]
+
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -27,15 +34,14 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         let name = newState.guild.name
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         const connection = getVoiceConnection(newState.guild.id);
-        if (connection != undefined)connection.destroy();
+        if (connection != undefined) connection.destroy();
         musicQueue.splice(index)
     }
 });
 
 client.on('messageCreate', async (message) => {
-    let player = createAudioPlayer();
-
     let connection;
+    let player;
 
     const getContent = valueMessage => {
         let completMessage = '';
@@ -52,7 +58,7 @@ client.on('messageCreate', async (message) => {
     }
 
     const searchVideoByName = async (name, status) => {
-        const apiKey = 'AIzaSyA0HrKNE6MrbHqs22gdzuZgkHvZ-O5QvcA';
+        const apiKey = youtubeApi[1];
         const searchName = name
         let url = ''
         let check = status
@@ -101,12 +107,17 @@ client.on('messageCreate', async (message) => {
 
     const playQueueMusic = async (urlVideo) => {
         // Descargar el audio del video de YouTube
+        let name = message.member.voice.channel.id
+        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        if (index == -1) return
         play.setToken({
             youtube: {
                 cookie: "VISITOR_INFO1_LIVE=ZrxVIPDRiIQ; _ga=GA1.1.1339776614.1659837072; _ga_VCGEPY40VB=GS1.1.1669169551.1.0.1669169555.0.0.0; DEVICE_INFO=ChxOekU0TnpRNU5qRXpNVEV3TmpjM09EZzRNUT09EKa7/J0GGKa7/J0G; LOGIN_INFO=AFmmF2swRgIhAMahPQLU_8uqNHcIghIv4c4r_vB1jpDu8zSH-IefxqR9AiEAtWpnIdvZIc_lBGGRys_761WLHTJMo4O5xfO-aU9t8g8:QUQ3MjNmd2JqZ1FtM0ZKaDBKeEZkQTloZGh3NHhkdnZZeWVRako3SEo3VzZXTjJoLUotLW1SRDFGel9kRUpLM3poSk80emRPZk8zOEVFQU9XTWZiNjhlbUhZcTQ1cDFINmJ1SGlOeHBINkVEN3dXaFdNRmNFcU82TWYyVmJVRkQ5T0NTMWY0SU5RQTMtUEV2ajItak1kNG9uUWZaRk91MEtlem9ISGhUaThqVmNBRlR6ZC1SUHMzM1VobHcyMnNadk8zaFEtSkVVMDlIS3hsREVyMUFYWEc0U3ZsZ3dqTmpIQQ==; PREF=f6=401&volume=50&tz=America.Bogota&f5=30000&f7=100; SID=UgjSWKWO8OWZNbnwD-4UIO5DTS4cXkCswbfqMTn8AcazK33IiWJXFiJ-Sfvt7v3bjR2YTg.; __Secure-1PSID=UgjSWKWO8OWZNbnwD-4UIO5DTS4cXkCswbfqMTn8AcazK33Isoxe-YCX-ejt4kaMbvVRAw.; __Secure-3PSID=UgjSWKWO8OWZNbnwD-4UIO5DTS4cXkCswbfqMTn8AcazK33ImMswlwJnHc25Higioylong.; HSID=ArRJcEFSdQhZucu9c; SSID=ADuaDzdLG-KdBqSEQ; APISID=pP9wiiXI-96_5t_S/AkyyCy5emFEUHF9zN; SAPISID=zt1kJ8BwcorXr2WK/AvyYNc_8qkMxGdW-n; __Secure-1PAPISID=zt1kJ8BwcorXr2WK/AvyYNc_8qkMxGdW-n; __Secure-3PAPISID=zt1kJ8BwcorXr2WK/AvyYNc_8qkMxGdW-n; YSC=l8uLdFoRDe8; SIDCC=AFvIBn8HqVnsexGJQDVvzxdQHEWaFDls4fHU3dbiP7koFP9cinCvNnzpORwAT07o6-d6By2AWg; __Secure-1PSIDCC=AFvIBn-DTQ6cbUUGcI7z-sAw1PBw0HtkyolgUUIjmW9QqCedAmUKpiIYjOEYmCSVZKvFNQHrxNo; __Secure-3PSIDCC=AFvIBn9hfYVZlWWYxu5h49WeDHAjF36mJ68gFbkvYgMzdm1Uq1psO-nfxOIPZmdJs5iB93hZ_5Q"
             }
         }) // YouTube Cookies
-
+        
+        if (urlVideo == undefined) return
+        
         const stream = await play.stream(urlVideo)
 
         // Reproducir el audio en el canal de voz
@@ -114,31 +125,71 @@ client.on('messageCreate', async (message) => {
             inputType: stream.type
         })
 
-        player.play(resource);
-        connection.subscribe(player);
+        if (musicQueue[index][name].player == null) {
+            player = createAudioPlayer();
+            player.play(resource);
+            musicQueue[index][name].player = player
+            musicQueue[index][name].subscription = connection.subscribe(player);
+        } else {
+            player = createAudioPlayer();
+            musicQueue[index][name].player = player
+            musicQueue[index][name].player.play(resource)
+            player = musicQueue[index][name].player
+            musicQueue[index][name].subscription = musicQueue[index][name].connection.subscribe(player);
+        }
+
+        player.on(AudioPlayerStatus.Idle, () => {
+            let name = message.member.voice.channel.id
+            let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+            if (index == -1) return
+            musicQueue[index][name].status = 'idle';
+            musicQueue[index][name].counter += 1;
+            if (musicQueue[index][name].url.length == 0 || musicQueue[index][name].counter == musicQueue[index][name].url.length) {
+                musicQueue[index][name].player.stop();
+                musicQueue[index][name].connection.destroy()
+                musicQueue[index][name].subscription.unsubscribe()
+                musicQueue.splice(index)
+                return;
+            }
+            playMusic(index, name); // Play the next item in the queue
+        });
+    
+        player.on(AudioPlayerStatus.AutoPaused, (e) => {
+            let name = message.member.voice.channel.id
+            let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+            if (index == -1) return
+            musicQueue[index][name].connection.configureNetworking();
+            musicQueue[index][name].player.unpause()
+        });
 
     }
 
     const playMusic = async (index, name) => {
         let counter = musicQueue[index][name].counter
+        connection = joinVoiceChannel({
+            channelId: message.member.voice.channel.id,
+            guildId: message.guild.id,
+            adapterCreator: message.guild.voiceAdapterCreator
+        });
+        musicQueue[index][name].connection = connection
         playQueueMusic(musicQueue[index][name].url[counter]);
         musicQueue[index][name].status = 'playing';
         message.channel.send(`you are playing ${musicQueue[index][name].url[counter]}, ${musicQueue[index][name].url.length} videos in the list`);
     }
 
-    if (message.content.startsWith('!plays')) {
+    if (message.content.startsWith('!p')) {
         if (!message.member.voice.channel) {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
         const contentMessage = message.content.split(' ');
+        let name = message.member.voice.channel.id
+        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
 
         if (validateUrl(contentMessage[1])) {
             await searchVideoByName(contentMessage[1], true).then(re => {
                 if (re == false) {
                     return
                 }
-                let name = message.member.voice.channel.id
-                let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                 if (index === -1) {
                     musicQueue.push({
                         [name]: {
@@ -146,9 +197,13 @@ client.on('messageCreate', async (message) => {
                             url: [re.videoUrl],
                             videoName: [re.name],
                             counter: 0,
-                            status: 'idle'
+                            connection: null,
+                            player: null,
+                            subscription: null,
+                            status: 'idle',
                         }
                     });
+                    name = message.member.voice.channel.id
                     index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                     playMusic(index, name)
 
@@ -163,8 +218,6 @@ client.on('messageCreate', async (message) => {
                 if (re == false) {
                     return
                 }
-                let name = message.member.voice.channel.id
-                let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                 if (index === -1) {
                     musicQueue.push({
                         [name]: {
@@ -172,6 +225,9 @@ client.on('messageCreate', async (message) => {
                             url: [re.videoUrl],
                             videoName: [re.name],
                             counter: 0,
+                            connection: null,
+                            player: null,
+                            subscription: null,
                             status: 'idle'
                         }
                     });
@@ -185,74 +241,14 @@ client.on('messageCreate', async (message) => {
                     if (!message.member.voice.channel) {
                         return
                     } else {
-                        connection = joinVoiceChannel({
-                            channelId: message.member.voice.channel.id,
-                            guildId: message.guild.id,
-                            adapterCreator: message.guild.voiceAdapterCreator
-                        });
+                        let name = message.member.voice.channel.id
+                        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                         playMusic(index, name)
                     };
                 } else {
                     message.channel.send(`Has been add to the queue ${musicQueue[index][name].url[musicQueue[index][name].url.length - 1]}, ${musicQueue[index][name].url.length} videos in the list`);
                 }
             });
-        }
-    }
-
-    if (message.content === '!stop') {
-        let name = message.member.voice.channel.id
-        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-        
-        if (index == -1) {
-            return
-        }
-        connection = joinVoiceChannel({
-            channelId: message.member.voice.channel.id,
-            guildId: message.guild.id,
-            adapterCreator: message.guild.voiceAdapterCreator
-        });
-        player.stop();
-        connection.destroy();
-        musicQueue.splice(index)
-        message.channel.send(`Goodbye panita!`);
-    }
-
-    if (message.content === '!next') {
-        let name = message.member.voice.channel.id
-        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-        if (index == -1) {
-            return
-        }
-
-        if (!message.member.voice.channel) {
-            return
-
-        } else {
-            connection = joinVoiceChannel({
-                channelId: message.member.voice.channel.id,
-                guildId: message.guild.id,
-                adapterCreator: message.guild.voiceAdapterCreator
-            });
-        };
-        musicQueue[index][name].counter += 1 // Remove the first item from the queue
-        if (musicQueue[index][name].url.length == 0 || musicQueue[index][name].counter == musicQueue[index][name].url.length) {
-            connection.destroy();
-            musicQueue.splice(index)
-            return;
-        }
-        playMusic(index, name)
-    }
-
-    if (message.content === '!back') {
-        // musicQueue.shift();  
-        let name = message.member.voice.channel.id
-        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-        if (index == -1) {
-            return
-        }
-        if (musicQueue[index][name].counter > 0) {
-            musicQueue[index][name].counter -= 1 // Remove the first item from the queue
-            playMusic(index, name)
         }
     }
 
@@ -273,6 +269,42 @@ client.on('messageCreate', async (message) => {
         // message.channel.send(`\`\`\`${prompt}\`\`\``)
     }
 
+    if (message.content === '!stop') {
+        let name = message.member.voice.channel.id
+        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        if (index == -1) return
+        musicQueue[index][name].subscription.unsubscribe()
+        musicQueue[index][name].player.stop();
+        musicQueue[index][name].connection.destroy()
+        musicQueue.splice(index)
+        message.channel.send(`Goodbye panita!`);
+    }
+
+    if (message.content === '!next') {
+        if (!message.member.voice.channel) return  
+        let name = message.member.voice.channel.id
+        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        if (index == -1) return
+
+        musicQueue[index][name].counter += 1 // Remove the first item from the queue
+        if (musicQueue[index][name].url.length == 0 || musicQueue[index][name].counter == musicQueue[index][name].url.length) {
+            musicQueue[index][name].connection.destroy();
+            musicQueue.splice(index)
+            return;
+        }
+        playMusic(index, name)
+    }
+
+    if (message.content === '!back') { 
+        let name = message.member.voice.channel.id
+        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        if (index == -1) return
+        if (musicQueue[index][name].counter > 0) {
+            musicQueue[index][name].counter -= 1 // Remove the first item from the queue
+            playMusic(index, name)
+        }
+    }
+
     if (message.content === '!test') {
         console.log('-------------------------------------------------------------------------------')
         musicQueue.forEach((e) => {
@@ -282,41 +314,18 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!list') {
+        
+        let text = ''
         let name = message.member.voice.channel.id
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
-
-        let text = ''
         musicQueue[index][name].videoName.forEach((e) => {
             text = text + `\n -${e}`
         })
         message.channel.send(`***list:*** ${text}`);
     }
-
-    player.on(AudioPlayerStatus.Idle, () => {
-        let name = message.member.voice.channel.id
-        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-        musicQueue[index][name].status = 'idle';
-        // musicQueue.shift(); // Remove the first item from the queue
-        musicQueue[index][name].counter += 1;
-
-        if (musicQueue[index][name].url.length == 0 || musicQueue[index][name].counter == musicQueue[index][name].url.length) {
-            connection.destroy();
-            musicQueue.splice(index)
-            return;
-        }
-        playMusic(index, name); // Play the next item in the queue
-
-    });
-
-    player.on(AudioPlayerStatus.Playing, () => {
-
-    });
-
-    player.on(AudioPlayerStatus.AutoPaused, (e) => {
-        connection.configureNetworking();
-        player.unpause()
-    });
+    
 });
+
 
 client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
