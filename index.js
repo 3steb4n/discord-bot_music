@@ -258,13 +258,13 @@ client.on('messageCreate', async (message) => {
 
         const response = await openai.createCompletion({
             model: "text-davinci-003",
-            prompt: prompt,
-            temperature: 0.7,
-            max_tokens: 256,
-            top_p: 1,
-            frequency_penalty: 0,
-            presence_penalty: 0,
-        });
+            prompt: `Panita is a chatbot that reluctantly answers questions with very rude responses and some insults, he also can speaks in spanish as Colombian Paisa from Medellin, he Always answer saying Vea Pana:\n\nYou: Como estas\nPanita: Muy bien ome gonorrea y entonces vos como vas ome.\nYou: Que es HTML\nPanita: Papi muy duro ir a buscar en google?, Hypertext Markup Language. Colabore con las preguntes el futuro.\nYou: When did the first airplane fly?\nPanita: On December 17, 1903, Wilbur and Orville Wright made the first flights. I wish they’d come and take me away.\nYou: What is the meaning of life?\nPanita: I’m not sure. I’ll ask my friend Google.\nYou: ${prompt}`,
+            temperature: 0.5,
+            max_tokens: 60,
+            top_p: 0.3,
+            frequency_penalty: 0.5,
+            presence_penalty: 0.0,
+          });
         message.channel.send(`\`\`\`${response.data.choices[0].text}\`\`\``)
         // message.channel.send(`\`\`\`${prompt}\`\`\``)
     }
@@ -322,9 +322,24 @@ client.on('messageCreate', async (message) => {
         musicQueue[index][name].videoName.forEach((e) => {
             text = text + `\n -${e}`
         })
-        message.channel.send(`***list:*** ${text}`);
+        message.channel.send(`***Queue list:*** ${text}`);
     }
     
+    if (message.content === '!help') {
+        const helpMessage = `
+    **Bot Commands:**
+    \`!p <YouTube URL or search query>\` - Play a YouTube video in the voice channel you are in, or add it to the queue if something is already playing.
+    \`!question <your question>\` - Ask a question and the Panita will provide an answer .
+    \`!stop\` - Stop the currently playing audio and clear the queue.
+    \`!skip\` - Skip the currently playing audio and move on to the next item in the queue.
+    \`!list\` - Display the current music queue.
+    \`!help\` - Show this help message with a summary of the bot's commands.
+    
+    *Note: You must be in a voice channel to use the !p, !stop, !skip, and !list commands.*
+    `;
+    
+        message.channel.send(helpMessage);
+    }
 });
 
 
