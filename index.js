@@ -333,7 +333,7 @@ client.on('messageCreate', async (message) => {
             \`!stop\` - Stop the currently playing audio and clear the queue.
             \`!skip\` - Skip the currently playing audio and move on to the next item in the queue.
             \`!list\` - Display the current music queue.
-            \`!delete <number>\` - Deletes the specified number of messages (1 to 100) in the current channel. Usage: !delete 5 (deletes the last 5 messages, including the command message).
+            \`!delete <number>\` - Deletes the specified number of messages (1 to 100) in the current channel.
             \`!help\` - Show this help message with a summary of the bot's commands.
             
             *Note: You must be in a voice channel to use the !p, !stop, !skip, and !list commands.*
@@ -346,7 +346,7 @@ client.on('messageCreate', async (message) => {
         const deleteCount = parseInt(args[1], 10);
     
         if (isNaN(deleteCount) || deleteCount < 1 || deleteCount > 100) {
-            return message.reply('Please provide a valid number of messages to delete (1 to 100).');
+            return message.reply('Please provide a valid number of messages to delete (1 to 99).');
         }
     
         // Fetch messages and delete them
@@ -362,7 +362,7 @@ client.on('messageCreate', async (message) => {
             })
             .catch(error => {
                 console.error(`Could not delete messages: ${error}`);
-                message.reply('An error occurred while trying to delete messages, This could be a permission problem, add permisions to the bot and trying again.');
+                message.reply('An error occurred while trying to delete messages, This could be a permission problem, add permisions and try again.');
             });
     }
 });
