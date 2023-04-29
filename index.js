@@ -10,7 +10,15 @@ const youtubeApi = [
     'AIzaSyCgnrrfyYgGb3t4TXk1yC8qtau5XlYcAzY',
     'AIzaSyA0HrKNE6MrbHqs22gdzuZgkHvZ-O5QvcA',
     'AIzaSyA55Fiywruvh6ylPBhzh4r_-6INCbFncM0'
+]
 
+const lofi_24 = [
+    'https://www.youtube.com/watch?v=JWlKA9wmO64',
+    'https://www.youtube.com/live/watch?v=jfKfPfyJRdk',
+    'https://www.youtube.com/live/watch?v=MVPTGNGiI-4',
+    'https://www.youtube.com/live/watch?v=Su00mfi5QUY',
+    'https://www.youtube.com/live/watch?v=efwDBb84yWY',
+    'https://www.youtube.com/live/watch?v=zsYwejVYZ_M'
 ]
 
 const client = new Client({
@@ -185,6 +193,17 @@ client.on('messageCreate', async (message) => {
         let name = message.member.voice.channel.id
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
 
+        if (index != -1) {
+            if(musicQueue[index][name].playing == 'lofi') {
+                musicQueue[index][name].subscription.unsubscribe()
+                musicQueue[index][name].player.stop();
+                musicQueue[index][name].connection.destroy()
+                musicQueue.splice(index)
+                
+            }
+        }
+        index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        
         if (validateUrl(contentMessage[1])) {
             await searchVideoByName(contentMessage[1], true).then(re => {
                 if (re == false) {
@@ -196,6 +215,7 @@ client.on('messageCreate', async (message) => {
                             name: message.guild.name,
                             url: [re.videoUrl],
                             videoName: [re.name],
+                            playing: 'youtube',
                             counter: 0,
                             connection: null,
                             player: null,
@@ -224,6 +244,7 @@ client.on('messageCreate', async (message) => {
                             name: message.guild.name,
                             url: [re.videoUrl],
                             videoName: [re.name],
+                            playing: 'youtube',
                             counter: 0,
                             connection: null,
                             player: null,
@@ -267,6 +288,56 @@ client.on('messageCreate', async (message) => {
           });
         message.channel.send(`\`\`\`${response.data.choices[0].text}\`\`\``)
         // message.channel.send(`\`\`\`${prompt}\`\`\``)
+    }
+
+    if (message.content === '!lofi') {
+        let name = message.member.voice.channel.id
+        let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        let position = Math.ceil(Math.random() * lofi_24.length - 1)
+        if (index == -1) {
+            musicQueue.push({
+                [name]: {
+                    name: message.guild.name,
+                    url: [lofi_24[position]],
+                    videoName: 'Lofi Radio 24/7',
+                    playing: 'lofi',
+                    counter: 0,
+                    connection: null,
+                    player: null,
+                    subscription: null,
+                    status: 'idle'
+                }
+            });
+            index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+            playMusic(index, name)
+        } else {
+            musicQueue[index][name].subscription.unsubscribe()
+            musicQueue[index][name].player.stop();
+            musicQueue[index][name].connection.destroy()
+            musicQueue.splice(index)
+            position = Math.ceil(Math.random() * lofi_24.length - 1)
+            
+            setTimeout(()=> {
+                musicQueue.push({
+                    [name]: {
+                        name: message.guild.name,
+                        url: [lofi_24[position]],
+                        videoName: 'Lofi Radio 24/7',
+                        playing: 'lofi',
+                        counter: 0,
+                        connection: null,
+                        player: null,
+                        subscription: null,
+                        status: 'idle'
+                    }
+                });
+                name = message.member.voice.channel.id
+                index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+                playMusic(index, name)
+
+            }, 1000)
+            
+        }
     }
 
     if (message.content === '!stop') {
