@@ -73,7 +73,6 @@ client.on('messageCreate', async (message) => {
         let youtubeId = youtube_parser(searchName)
         if (check == true) {
             url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(youtubeId)}&key=${apiKey}`;
-
         } else {
 
             url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(searchName)}&type=video&key=${apiKey}`;
@@ -163,6 +162,7 @@ client.on('messageCreate', async (message) => {
         });
     
         player.on(AudioPlayerStatus.AutoPaused, (e) => {
+            if (!message.member.voice.channel.id)return
             let name = message.member.voice.channel.id
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
             if (index == -1) return
