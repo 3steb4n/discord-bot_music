@@ -114,7 +114,7 @@ client.on('messageCreate', async (message) => {
 
     const playQueueMusic = async (urlVideo) => {
         // Descargar el audio del video de YouTube
-        let name = message.member.voice.channel.id
+        let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         play.setToken({
@@ -122,9 +122,9 @@ client.on('messageCreate', async (message) => {
                 cookie: "VISITOR_INFO1_LIVE=ZrxVIPDRiIQ; _ga=GA1.1.1339776614.1659837072; _ga_VCGEPY40VB=GS1.1.1669169551.1.0.1669169555.0.0.0; DEVICE_INFO=ChxOekU0TnpRNU5qRXpNVEV3TmpjM09EZzRNUT09EKa7/J0GGKa7/J0G; LOGIN_INFO=AFmmF2swRgIhAMahPQLU_8uqNHcIghIv4c4r_vB1jpDu8zSH-IefxqR9AiEAtWpnIdvZIc_lBGGRys_761WLHTJMo4O5xfO-aU9t8g8:QUQ3MjNmd2JqZ1FtM0ZKaDBKeEZkQTloZGh3NHhkdnZZeWVRako3SEo3VzZXTjJoLUotLW1SRDFGel9kRUpLM3poSk80emRPZk8zOEVFQU9XTWZiNjhlbUhZcTQ1cDFINmJ1SGlOeHBINkVEN3dXaFdNRmNFcU82TWYyVmJVRkQ5T0NTMWY0SU5RQTMtUEV2ajItak1kNG9uUWZaRk91MEtlem9ISGhUaThqVmNBRlR6ZC1SUHMzM1VobHcyMnNadk8zaFEtSkVVMDlIS3hsREVyMUFYWEc0U3ZsZ3dqTmpIQQ==; PREF=f6=401&volume=50&tz=America.Bogota&f5=30000&f7=100; SID=UgjSWKWO8OWZNbnwD-4UIO5DTS4cXkCswbfqMTn8AcazK33IiWJXFiJ-Sfvt7v3bjR2YTg.; __Secure-1PSID=UgjSWKWO8OWZNbnwD-4UIO5DTS4cXkCswbfqMTn8AcazK33Isoxe-YCX-ejt4kaMbvVRAw.; __Secure-3PSID=UgjSWKWO8OWZNbnwD-4UIO5DTS4cXkCswbfqMTn8AcazK33ImMswlwJnHc25Higioylong.; HSID=ArRJcEFSdQhZucu9c; SSID=ADuaDzdLG-KdBqSEQ; APISID=pP9wiiXI-96_5t_S/AkyyCy5emFEUHF9zN; SAPISID=zt1kJ8BwcorXr2WK/AvyYNc_8qkMxGdW-n; __Secure-1PAPISID=zt1kJ8BwcorXr2WK/AvyYNc_8qkMxGdW-n; __Secure-3PAPISID=zt1kJ8BwcorXr2WK/AvyYNc_8qkMxGdW-n; YSC=l8uLdFoRDe8; SIDCC=AFvIBn8HqVnsexGJQDVvzxdQHEWaFDls4fHU3dbiP7koFP9cinCvNnzpORwAT07o6-d6By2AWg; __Secure-1PSIDCC=AFvIBn-DTQ6cbUUGcI7z-sAw1PBw0HtkyolgUUIjmW9QqCedAmUKpiIYjOEYmCSVZKvFNQHrxNo; __Secure-3PSIDCC=AFvIBn9hfYVZlWWYxu5h49WeDHAjF36mJ68gFbkvYgMzdm1Uq1psO-nfxOIPZmdJs5iB93hZ_5Q"
             }
         }) // YouTube Cookies
-        
+
         if (urlVideo == undefined) return
-        
+
         const stream = await play.stream(urlVideo)
 
         // Reproducir el audio en el canal de voz
@@ -146,7 +146,7 @@ client.on('messageCreate', async (message) => {
         }
 
         player.on(AudioPlayerStatus.Idle, () => {
-            let name = message.member.voice.channel.id
+            let name = message.channelId
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
             if (index == -1) return
             musicQueue[index][name].status = 'idle';
@@ -160,10 +160,10 @@ client.on('messageCreate', async (message) => {
             }
             playMusic(index, name); // Play the next item in the queue
         });
-    
+
         player.on(AudioPlayerStatus.AutoPaused, (e) => {
-            if (!message.member.voice.channel.id)return
-            let name = message.member.voice.channel.id
+            if (!message.member.voice) return
+            let name = message.channelId
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
             if (index == -1) return
             musicQueue[index][name].connection.configureNetworking();
@@ -190,20 +190,20 @@ client.on('messageCreate', async (message) => {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
         const contentMessage = message.content.split(' ');
-        let name = message.member.voice.channel.id
+        let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
 
         if (index != -1) {
-            if(musicQueue[index][name].playing == 'lofi') {
+            if (musicQueue[index][name].playing == 'lofi') {
                 musicQueue[index][name].subscription.unsubscribe()
                 musicQueue[index][name].player.stop();
                 musicQueue[index][name].connection.destroy()
                 musicQueue.splice(index)
-                
+
             }
         }
         index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-        
+
         if (validateUrl(contentMessage[1])) {
             await searchVideoByName(contentMessage[1], true).then(re => {
                 if (re == false) {
@@ -262,7 +262,7 @@ client.on('messageCreate', async (message) => {
                     if (!message.member.voice.channel) {
                         return
                     } else {
-                        let name = message.member.voice.channel.id
+                        let name = message.channelId
                         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                         playMusic(index, name)
                     };
@@ -285,13 +285,13 @@ client.on('messageCreate', async (message) => {
             top_p: 0.3,
             frequency_penalty: 0.5,
             presence_penalty: 0.0,
-          });
+        });
         message.channel.send(`\`\`\`${response.data.choices[0].text}\`\`\``)
         // message.channel.send(`\`\`\`${prompt}\`\`\``)
     }
 
     if (message.content === '!lofi') {
-        let name = message.member.voice.channel.id
+        let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         let position = Math.ceil(Math.random() * lofi_24.length - 1)
         if (index == -1) {
@@ -316,8 +316,8 @@ client.on('messageCreate', async (message) => {
             musicQueue[index][name].connection.destroy()
             musicQueue.splice(index)
             position = Math.ceil(Math.random() * lofi_24.length - 1)
-            
-            setTimeout(()=> {
+
+            setTimeout(() => {
                 musicQueue.push({
                     [name]: {
                         name: message.guild.name,
@@ -336,12 +336,12 @@ client.on('messageCreate', async (message) => {
                 playMusic(index, name)
 
             }, 1000)
-            
+
         }
     }
 
     if (message.content === '!stop') {
-        let name = message.member.voice.channel.id
+        let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         musicQueue[index][name].subscription.unsubscribe()
@@ -352,8 +352,8 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!next') {
-        if (!message.member.voice.channel) return  
-        let name = message.member.voice.channel.id
+        if (!message.member.voice.channel) return
+        let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
 
@@ -366,8 +366,8 @@ client.on('messageCreate', async (message) => {
         playMusic(index, name)
     }
 
-    if (message.content === '!back') { 
-        let name = message.member.voice.channel.id
+    if (message.content === '!back') {
+        let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         if (musicQueue[index][name].counter > 0) {
@@ -385,9 +385,9 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!list') {
-        
+
         let text = ''
-        let name = message.member.voice.channel.id
+        let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         musicQueue[index][name].videoName.forEach((e) => {
@@ -395,7 +395,7 @@ client.on('messageCreate', async (message) => {
         })
         message.channel.send(`***Queue list:*** ${text}`);
     }
-    
+
     if (message.content === '!help') {
         const helpMessage = `
             **Bot Commands:**
@@ -415,11 +415,11 @@ client.on('messageCreate', async (message) => {
     if (message.content.startsWith('!delete')) {
         const args = message.content.split(' ');
         const deleteCount = parseInt(args[1], 10);
-    
+
         if (isNaN(deleteCount) || deleteCount < 1 || deleteCount > 100) {
             return message.reply('Please provide a valid number of messages to delete (1 to 99).');
         }
-    
+
         // Fetch messages and delete them
         message.channel.bulkDelete(deleteCount + 1, true)
             .then(deletedMessages => {
