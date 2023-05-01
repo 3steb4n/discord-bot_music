@@ -223,7 +223,8 @@ client.on('messageCreate', async (message) => {
                             status: 'idle',
                         }
                     });
-                    name = message.member.voice.channel.id
+                    name = message.channelId
+
                     index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                     playMusic(index, name)
 
@@ -331,7 +332,7 @@ client.on('messageCreate', async (message) => {
                         status: 'idle'
                     }
                 });
-                name = message.member.voice.channel.id
+                name = message.channelId
                 index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                 playMusic(index, name)
 
