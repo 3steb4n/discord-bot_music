@@ -295,6 +295,9 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!lofi') {
+        if (!message.member.voice.channel) {
+            return message.reply('¡Please join first to the channel dont be dumb!');
+        }
         let name = message.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         let position = Math.ceil(Math.random() * lofi_24.length - 1)
