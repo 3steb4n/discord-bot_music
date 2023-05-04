@@ -1,8 +1,9 @@
-import { Client, GatewayIntentBits } from 'discord.js';
+import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
 import { Configuration, OpenAIApi } from 'openai';
 import play from 'play-dl'
 import fetch from "node-fetch";
 import { joinVoiceChannel, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection } from "@discordjs/voice";
+import { lolRandomize } from './leagueOfLegendsService/leagueOfLegendsRandom.js';
 
 const musicQueue = [];
 
@@ -436,6 +437,37 @@ client.on('messageCreate', async (message) => {
                 console.error(`Could not delete messages: ${error}`);
                 message.reply('An error occurred while trying to delete messages, This could be a permission problem, add permisions and try again.');
             });
+    }
+
+    if (message.content.startsWith('!randomize')) {
+        //generate image
+        const validParameters = ['jg', 'top', 'supp', 'mid', 'adc'];
+        const maxParameters = 5;
+        const args = message.content.split(' ');
+        args.shift();
+        
+        const correctParameters = [];
+
+        // Check all the parameters and save the correct ones
+        for (const parameter of args) {
+            if (validParameters.includes(parameter)) {
+                correctParameters.push(parameter);
+            }
+        }
+        // Check if at least one valid parameter is provided
+        if (correctParameters.length === 0) {
+            return message.reply('Please provide at least one valid parameter.');
+        }
+
+        // Verify if the number of correct parameters is within the limit
+        if (correctParameters.length > maxParameters) {
+            return message.reply(`Too many parameters. Please provide a maximum of ${maxParameters} valid parameters.`);
+        }
+        correctParameters.forEach(async(e) => {
+            let image = await lolRandomize(e, message)
+            const attachment = new AttachmentBuilder(await image.encode('png'), { name: 'profile-image.png' });
+            message.reply({ content: `Lane: ${e}`, files: [attachment] });
+        })
     }
 });
 
