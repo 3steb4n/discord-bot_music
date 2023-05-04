@@ -39,10 +39,12 @@ const openai = new OpenAIApi(configuration);
 client.on('voiceStateUpdate', (oldState, newState) => {
     // Check if the bot was disconnected
     if (oldState.channelId && !newState.channelId && oldState.member.user.id === client.user.id) {
-        let name = newState.guild.name
+        let name = newState.channelId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-        const connection = getVoiceConnection(newState.guild.id);
-        if (connection != undefined) connection.destroy();
+        if (index == -1) return
+        musicQueue[index][name].subscription.unsubscribe()
+        musicQueue[index][name].player.stop();
+        musicQueue[index][name].connection.destroy()
         musicQueue.splice(index)
     }
 });
