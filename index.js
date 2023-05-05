@@ -6,6 +6,7 @@ import { joinVoiceChannel, AudioPlayerStatus, createAudioPlayer, createAudioReso
 import { lolRandomize } from './leagueOfLegendsService/leagueOfLegendsRandom.js';
 
 const musicQueue = [];
+const cooldowns = new Set();
 
 const youtubeApi = [
     'AIzaSyCgnrrfyYgGb3t4TXk1yC8qtau5XlYcAzY',
@@ -457,13 +458,17 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content.startsWith('!delete')) {
+        if (cooldowns.has(message.author.id)) {
+            return message.reply('You must wait 3 minutes before using the !delete command again.');
+        }
+    
         const args = message.content.split(' ');
         const deleteCount = parseInt(args[1], 10);
-
+    
         if (isNaN(deleteCount) || deleteCount < 1 || deleteCount > 100) {
             return message.reply('Please provide a valid number of messages to delete (1 to 99).');
         }
-
+    
         // Fetch messages and delete them
         message.channel.bulkDelete(deleteCount + 1, true)
             .then(deletedMessages => {
@@ -474,10 +479,15 @@ client.on('messageCreate', async (message) => {
                             msg.delete();
                         }, 3000);
                     });
+    
+                cooldowns.add(message.author.id);
+                setTimeout(() => {
+                    cooldowns.delete(message.author.id);
+                }, 180000); // 3 minutes in milliseconds
             })
             .catch(error => {
                 console.error(`Could not delete messages: ${error}`);
-                message.reply('An error occurred while trying to delete messages, This could be a permission problem, add permisions and try again.');
+                message.reply('An error occurred while trying to delete messages, This could be a permission problem, add permissions and try again.');
             });
     }
 
