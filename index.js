@@ -400,6 +400,7 @@ client.on('messageCreate', async (message) => {
     
         // Check if the second parameter is provided and is either 'a' or 'b'
         if (args[1] === 'a') {
+            console.log('lol')
             let response = '-------------------------------------------------------------------------------\n';
             const allGuilds = client.guilds.cache;
 
