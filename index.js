@@ -45,7 +45,7 @@ client.on('ready', () => {
 
     // Log the guild names and IDs
     allGuilds.forEach((guild) => {
-      console.log(`Guild Name: ${guild.name}, Guild ID: ${guild.id}`);
+        console.log(`Guild Name: ${guild.name}, Guild ID: ${guild.id}`);
     });
 });
 
@@ -398,7 +398,7 @@ client.on('messageCreate', async (message) => {
     if (message.content.startsWith('!123caca')) {
         // Split the message content into an array of words
         const args = message.content.split(' ');
-    
+
         // Check if the second parameter is provided and is either 'a' or 'b'
         if (args[1] === 'a') {
             console.log('lol')
@@ -425,7 +425,7 @@ client.on('messageCreate', async (message) => {
         }
         else {
             // If the second parameter is not provided or is not 'a' or 'b', send an error message
-           return
+            return
         }
     }
 
@@ -442,33 +442,34 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!help') {
-        const helpMessage = `
-            **Bot Commands:**
-            \`!p <YouTube URL or search query>\` - Play a YouTube video in the voice channel you are in, or add it to the queue if something is already playing.
-            \`!question <your question>\` - Ask a question and the Panita will provide an answer .
-            \`!stop\` - Stop the currently playing audio and clear the queue.
-            \`!skip\` - Skip the currently playing audio and move on to the next item in the queue.
-            \`!list\` - Display the current music queue.
-            \`!delete <number>\` - Deletes the specified number of messages (1 to 100) in the current channel.
-            \`!help\` - Show this help message with a summary of the bot's commands.
-            
-            *Note: You must be in a voice channel to use the !p, !stop, !skip, and !list commands.*
-            `;
+        const helpMessage = `**Bot Commands:**
+\`!p <YouTube URL or search query>\` - Play a YouTube video in the voice channel you are in, or add it to the queue if something is already playing.
+\`!question <your question>\` - Ask a question and the Panita will provide an answer.
+\`!stop\` - Stop the currently playing audio and clear the queue.
+\`!skip\` - Skip the currently playing audio and move on to the next item in the queue.
+\`!list\` - Display the current music queue.
+\`!delete <number>\` - Deletes the specified number of messages (1 to 100) in the current channel.
+\`!randomize <lane> (example: !randomize jg top)\` - Generates a random character with their items for the specified lane(s). You can provide multiple lanes as parameters (jg, top, supp, mid, adc).
+\`!help\` - Show this help message with a summary of the bot's commands.
+
+*Note: You must be in a voice channel to use the !p, !stop, !skip, and !list commands.*
+`;
         message.channel.send(helpMessage);
+
     }
 
     if (message.content.startsWith('!delete')) {
         if (cooldowns.has(message.channelId)) {
             return message.reply('You must wait 3 minutes before using the !delete command again.');
         }
-    
+
         const args = message.content.split(' ');
         const deleteCount = parseInt(args[1], 10);
-    
+
         if (isNaN(deleteCount) || deleteCount < 1 || deleteCount > 100) {
             return message.reply('Please provide a valid number of messages to delete (1 to 99).');
         }
-    
+
         // Fetch messages and delete them
         message.channel.bulkDelete(deleteCount + 1, true)
             .then(deletedMessages => {
@@ -479,7 +480,7 @@ client.on('messageCreate', async (message) => {
                             msg.delete();
                         }, 3000);
                     });
-    
+
                 cooldowns.add(message.channelId);
                 setTimeout(() => {
                     cooldowns.delete(message.channelId);
@@ -497,7 +498,7 @@ client.on('messageCreate', async (message) => {
         const maxParameters = 5;
         const args = message.content.split(' ');
         args.shift();
-        
+
         const correctParameters = [];
 
         // Check all the parameters and save the correct ones
@@ -515,7 +516,7 @@ client.on('messageCreate', async (message) => {
         if (correctParameters.length > maxParameters) {
             return message.reply(`Too many parameters. Please provide a maximum of ${maxParameters} valid parameters.`);
         }
-        correctParameters.forEach(async(e) => {
+        correctParameters.forEach(async (e) => {
             let image = await lolRandomize(e, message)
             const attachment = new AttachmentBuilder(await image.encode('png'), { name: 'profile-image.png' });
             message.reply({ content: `Lane: ${e}`, files: [attachment] });
