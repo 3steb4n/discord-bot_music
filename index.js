@@ -458,7 +458,7 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content.startsWith('!delete')) {
-        if (cooldowns.has(message.author.id)) {
+        if (cooldowns.has(message.channelId)) {
             return message.reply('You must wait 3 minutes before using the !delete command again.');
         }
     
@@ -480,9 +480,9 @@ client.on('messageCreate', async (message) => {
                         }, 3000);
                     });
     
-                cooldowns.add(message.author.id);
+                cooldowns.add(message.channelId);
                 setTimeout(() => {
-                    cooldowns.delete(message.author.id);
+                    cooldowns.delete(message.channelId);
                 }, 180000); // 3 minutes in milliseconds
             })
             .catch(error => {
