@@ -37,6 +37,17 @@ const configuration = new Configuration({
 
 const openai = new OpenAIApi(configuration);
 
+client.on('ready', () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+    // Get all channels where the bot is a member
+    const allGuilds = client.guilds.cache;
+
+    // Log the guild names and IDs
+    allGuilds.forEach((guild) => {
+      console.log(`Guild Name: ${guild.name}, Guild ID: ${guild.id}`);
+    });
+});
+
 client.on('voiceStateUpdate', (oldState, newState) => {
     // Check if the bot was disconnected
     if (oldState.channelId && !newState.channelId && oldState.member.user.id === client.user.id) {
@@ -383,12 +394,37 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    if (message.content === '!test') {
-        console.log('-------------------------------------------------------------------------------')
-        musicQueue.forEach((e) => {
-            console.log(e)
-        })
-        console.log('-------------------------------------------------------------------------------')
+    if (message.content.startsWith('!123caca')) {
+        // Split the message content into an array of words
+        const args = message.content.split(' ');
+    
+        // Check if the second parameter is provided and is either 'a' or 'b'
+        if (args[1] === 'a') {
+            let response = '-------------------------------------------------------------------------------\n';
+            const allGuilds = client.guilds.cache;
+
+            allGuilds.forEach((guild) => {
+                response += `Guild Name: ${guild.name}, Guild ID: ${guild.id}\n`;
+            });
+            response += '-------------------------------------------------------------------------------';
+            message.channel.send(response);
+        } else if (args[1] === 'b') {
+            let response = '-------------------------------------------------------------------------------\n';
+            musicQueue.forEach((e) => {
+                e = e[message.channelId]
+                response += `Name: ${e.name}, `;
+                response += `Count videos: ${e.videoName.length}, `;
+                response += `Playing: ${e.playing}, `;
+                response += `Status: ${e.status}`;
+                response += '-------------------------------------------------------------------------------\n';
+            });
+            message.channel.send(response);
+
+        }
+        else {
+            // If the second parameter is not provided or is not 'a' or 'b', send an error message
+           return
+        }
     }
 
     if (message.content === '!list') {
