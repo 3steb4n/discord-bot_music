@@ -417,7 +417,7 @@ client.on('messageCreate', async (message) => {
                 response += `Name: ${e.name}, `;
                 response += `Count videos: ${e.videoName.length}, `;
                 response += `Playing: ${e.playing}, `;
-                response += `Status: ${e.status}`;
+                response += `Status: ${e.status}\n`;
                 response += '-------------------------------------------------------------------------------\n';
             });
             message.channel.send(response);
