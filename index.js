@@ -52,7 +52,7 @@ client.on('ready', () => {
 client.on('voiceStateUpdate', (oldState, newState) => {
     // Check if the bot was disconnected
     if (oldState.channelId && !newState.channelId && oldState.member.user.id === client.user.id) {
-        let name = oldState.guild.systemChannelId
+        let name = oldState.guild.id
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         musicQueue[index][name].subscription.unsubscribe()
@@ -129,7 +129,7 @@ client.on('messageCreate', async (message) => {
 
     const playQueueMusic = async (urlVideo) => {
         // Descargar el audio del video de YouTube
-        let name = message.channelId
+        let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         play.setToken({
@@ -161,7 +161,7 @@ client.on('messageCreate', async (message) => {
         }
 
         player.on(AudioPlayerStatus.Idle, () => {
-            let name = message.channelId
+            let name = message.guildId
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
             if (index == -1) return
             musicQueue[index][name].status = 'idle';
@@ -178,7 +178,7 @@ client.on('messageCreate', async (message) => {
 
         player.on(AudioPlayerStatus.AutoPaused, (e) => {
             if (!message.member.voice) return
-            let name = message.channelId
+            let name = message.guildId
             let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
             if (index == -1) return
             musicQueue[index][name].connection.configureNetworking();
@@ -205,7 +205,7 @@ client.on('messageCreate', async (message) => {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
         const contentMessage = message.content.split(' ');
-        let name = message.channelId
+        let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
 
         if (index != -1) {
@@ -238,7 +238,7 @@ client.on('messageCreate', async (message) => {
                             status: 'idle',
                         }
                     });
-                    name = message.channelId
+                    name = message.guildId
 
                     index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                     playMusic(index, name)
@@ -278,7 +278,7 @@ client.on('messageCreate', async (message) => {
                     if (!message.member.voice.channel) {
                         return
                     } else {
-                        let name = message.channelId
+                        let name = message.guildId
                         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                         playMusic(index, name)
                     };
@@ -310,7 +310,7 @@ client.on('messageCreate', async (message) => {
         if (!message.member.voice.channel) {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
-        let name = message.channelId
+        let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         let position = Math.ceil(Math.random() * lofi_24.length - 1)
         if (index == -1) {
@@ -350,7 +350,7 @@ client.on('messageCreate', async (message) => {
                         status: 'idle'
                     }
                 });
-                name = message.channelId
+                name = message.guildId
                 index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                 playMusic(index, name)
 
@@ -360,7 +360,7 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!stop') {
-        let name = message.channelId
+        let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         musicQueue[index][name].subscription.unsubscribe()
@@ -372,7 +372,7 @@ client.on('messageCreate', async (message) => {
 
     if (message.content === '!next') {
         if (!message.member.voice.channel) return
-        let name = message.channelId
+        let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
 
@@ -386,7 +386,7 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!back') {
-        let name = message.channelId
+        let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         if (musicQueue[index][name].counter > 0) {
@@ -395,8 +395,9 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    if (message.content.startsWith('!123caca')) {
+    if (message.content.startsWith('!info')) {
         // Split the message content into an array of words
+        if(message.guildId != '805240079823929346') return
         const args = message.content.split(' ');
 
         // Check if the second parameter is provided and is either 'a' or 'b'
@@ -413,7 +414,7 @@ client.on('messageCreate', async (message) => {
         } else if (args[1] === 'b') {
             let response = '-------------------------------------------------------------------------------\n';
             musicQueue.forEach((e) => {
-                e = e[message.channelId]
+                e = e[message.guildId]
                 response += `Name: ${e.name}, `;
                 response += `Count videos: ${e.videoName.length}, `;
                 response += `Playing: ${e.playing}, `;
@@ -432,7 +433,7 @@ client.on('messageCreate', async (message) => {
     if (message.content === '!list') {
 
         let text = ''
-        let name = message.channelId
+        let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
         musicQueue[index][name].videoName.forEach((e) => {
@@ -459,7 +460,7 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content.startsWith('!delete')) {
-        if (cooldowns.has(message.channelId)) {
+        if (cooldowns.has(message.guildId)) {
             return message.reply('You must wait 3 minutes before using the !delete command again.');
         }
 
@@ -481,9 +482,9 @@ client.on('messageCreate', async (message) => {
                         }, 3000);
                     });
 
-                cooldowns.add(message.channelId);
+                cooldowns.add(message.guildId);
                 setTimeout(() => {
-                    cooldowns.delete(message.channelId);
+                    cooldowns.delete(message.guildId);
                 }, 180000); // 3 minutes in milliseconds
             })
             .catch(error => {
@@ -521,6 +522,53 @@ client.on('messageCreate', async (message) => {
             const attachment = new AttachmentBuilder(await image.encode('png'), { name: 'profile-image.png' });
             message.reply({ content: `Lane: ${e}`, files: [attachment] });
         })
+    }
+
+    if (message.content.startsWith('!imagine')) {
+        if (cooldowns.has(message.guildId)) {
+            return message.reply('You must wait 1 minutes before using the !imagine command again.');
+        }
+        cooldowns.add(message.guildId);
+        setTimeout(() => {
+            cooldowns.delete(message.guildId);
+        }, 60000); // 1 minutes in milliseconds 
+        const args = message.content.split(' ');
+        args.shift(); // Remove the command itself
+    
+        const prompt = args.join(' ');
+    
+        if (!prompt) {
+            return message.reply('Please provide a description for the image.');
+        }
+        message.channel.send('Generating image...');
+        async function generateImage(prompt) {
+            try {
+                const response = await openai.createImage({
+                    prompt: prompt,
+                    n: 1,
+                    size: "1024x1024",
+                });
+                let image_url = response.data.data[0].url;
+                
+                return image_url;
+            } catch (error) {
+                // console.error('Error generating image:', error);
+                return null;
+            }
+        }
+
+        generateImage(prompt)
+            .then((imageUrl) => {
+                if (imageUrl) {
+                    message.channel.send(imageUrl);
+                } else {
+                    message.reply('An error occurred while generating the image. Please try again.');
+                }
+            })
+            .catch((error) => {
+                console.error('Error in !imagine command:', error);
+                message.reply('An error occurred while generating the image. Please try again.');
+            });
     }
 });
 
