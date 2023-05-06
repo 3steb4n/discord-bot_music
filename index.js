@@ -431,15 +431,26 @@ client.on('messageCreate', async (message) => {
     }
 
     if (message.content === '!list') {
-
         let text = ''
         let name = message.guildId
         let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         if (index == -1) return
-        musicQueue[index][name].videoName.forEach((e) => {
-            text = text + `\n -${e}`
-        })
-        message.channel.send(`***Queue list:*** ${text}`);
+        if (musicQueue[index][name].playing == 'lofi') {
+            message.channel.send(`Not avaliable for Lofi radio`);
+            return
+        }
+        const queue = musicQueue[index][name].url;
+        const videoNames = musicQueue[index][name].videoName;
+
+        for (let idx = 0; idx < queue.length; idx++) {
+            text += `\n\`${idx + 1}.\` **${videoNames[idx] || 'Unknown'}**`;
+        }
+    
+        if (text === '') {
+            message.channel.send('***The queue is empty.***');
+        } else {
+            message.channel.send(`***Queue list:***${text}`);
+        }
     }
 
     if (message.content === '!help') {
@@ -450,8 +461,12 @@ client.on('messageCreate', async (message) => {
 \`!skip\` - Skip the currently playing audio and move on to the next item in the queue.
 \`!list\` - Display the current music queue.
 \`!delete <number>\` - Deletes the specified number of messages (1 to 100) in the current channel.
-\`!randomize <lane> (example: !randomize jg top)\` - Generates a random character with their items for the specified lane(s). You can provide multiple lanes as parameters (jg, top, supp, mid, adc).
+\`!lofi\` - Start or stop the 24/7 lofi radio in the voice channel you are in.
+\`!randomize <lane>\` - Generate random game characters and their items for the specified lane.
+\`!imagine <description>\` - Create a unique image based on your description using OpenAI's DALL-E.
 \`!help\` - Show this help message with a summary of the bot's commands.
+
+
 
 *Note: You must be in a voice channel to use the !p, !stop, !skip, and !list commands.*
 `;
