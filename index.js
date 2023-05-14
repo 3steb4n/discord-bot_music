@@ -288,7 +288,7 @@ client.on('messageCreate', async (message) => {
         }
     }
 
-    if (message.content.startsWith('!kuestion')) {
+    if (message.content.startsWith('!question')) {
         const contentMessage = message.content.split(' ');
         let prompt = getContent(contentMessage);
     
