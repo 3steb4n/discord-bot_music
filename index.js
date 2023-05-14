@@ -35,7 +35,11 @@ const client = new Client({
 
 const apiKey = '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'
 
+const configuration = new Configuration({
+    apiKey: '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',
+});
 
+const openai = new OpenAIApi(configuration);
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
