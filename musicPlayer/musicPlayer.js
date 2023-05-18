@@ -343,20 +343,17 @@ function stopMusic(interaction, client) {
     musicQueue.splice(index)
     
     let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-    if (messageIndex == -1)  {
-        interaction.channel.send(`Goodbye panita`)
-        return
-    } else {
-
-        if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
-            lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
-        }
+    if (messageIndex != -1)  {
         AllMessages[messageIndex][name].message.forEach((e) => {
             e.delete()
         })
         AllMessages.splice(messageIndex)
-        interaction.channel.send(`Goodbye panita`);
     }
+
+    if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
+        lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
+    }
+    interaction.channel.send(`Goodbye panita`);
 }
 
 function nextMusic(interaction, client) {
