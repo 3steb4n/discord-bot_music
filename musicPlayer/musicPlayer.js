@@ -328,6 +328,7 @@ const playMusic = async (index, name, message, client) => {
         .setColor('#ffb300')
     if (lastMessages[message.guild == undefined? message.guildId : message.guild.id]) {
         lastMessages[message.guild == undefined? message.guildId : message.guild.id].delete();
+        lastMessages[message.guild == undefined? message.guildId : message.guild.id] = null
     }
 
     lastMessages[message.guild.id] = await message.channel.send({ embeds: [embed], components: [row] });
@@ -352,6 +353,8 @@ function stopMusic(interaction, client) {
 
     if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
         lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
+        lastMessages[message.guild == undefined? message.guildId : message.guild.id] = null
+
     }
     interaction.channel.send(`Goodbye panita`);
 }

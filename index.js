@@ -57,6 +57,8 @@ client.on('voiceStateUpdate', (oldState, newState) => {
     
         if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
             lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
+            lastMessages[message.guild == undefined? message.guildId : message.guild.id] = null
+
         }
     }
 });
