@@ -48,16 +48,15 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         musicQueue.splice(index)
 
         let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-        if (messageIndex == -1)  {
-            interaction.channel.send(`Goodbye panita`)
-            return
-        } else {
-            lastMessages[name].delete();
-            lastMessages[name] = null
+        if (messageIndex != -1)  {
             AllMessages[messageIndex][name].message.forEach((e) => {
                 e.delete()
             })
             AllMessages.splice(messageIndex)
+        }
+    
+        if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
+            lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
         }
     }
 });
