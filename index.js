@@ -58,14 +58,15 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 });
 
 client.on('messageCreate', async (message) => {
-    if (message.content.startsWith('!u')) {
+    const text = message.content.split(' ');
+    if (text[0] == ('!p')) {
         if (!message.member.voice.channel) {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
         startMusic(message, client)
     }
 
-    if (message.content.startsWith('!question')) {
+    if (text[0] == ('!question')) {
         const contentMessage = message.content.split(' ');
         let prompt = getContent(contentMessage);
 
@@ -118,7 +119,7 @@ client.on('messageCreate', async (message) => {
         getList(message, client)
     }
 
-    if (message.content.startsWith('!info')) {
+    if (text[0] == ('!info')) {
         // Split the message content into an array of words
         if (message.guildId != '805240079823929346') return
         const args = message.content.split(' ');
@@ -174,7 +175,7 @@ client.on('messageCreate', async (message) => {
 
     }
 
-    if (message.content.startsWith('!delete')) {
+    if (text[0] == ('!delete')) {
         if (cooldowns.has(message.guildId)) {
             return message.reply('You must wait 3 minutes before using the !delete command again.');
         }
@@ -208,7 +209,7 @@ client.on('messageCreate', async (message) => {
             });
     }
 
-    if (message.content.startsWith('!randomize')) {
+    if (text[0] == ('!randomize')) {
         //generate image
         const validParameters = ['jg', 'top', 'supp', 'mid', 'adc'];
         const maxParameters = 5;
@@ -239,7 +240,7 @@ client.on('messageCreate', async (message) => {
         })
     }
 
-    if (message.content.startsWith('!imagine')) {
+    if (text[0] == ('!imagine')) {
         if (cooldowns.has(message.guildId)) {
             return message.reply('You must wait 1 minutes before using the !imagine command again.');
         }

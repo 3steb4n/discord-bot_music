@@ -341,16 +341,16 @@ function stopMusic(interaction, client) {
     musicQueue[index][name].player.stop();
     musicQueue[index][name].connection.destroy()
     musicQueue.splice(index)
-    interaction.channel.send(`Goodbye panita`);
-
+    
     let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-    if (messageIndex == -1) return
+    if (messageIndex == -1) interaction.channel.send(`Goodbye panita`);
     lastMessages[interaction.guildId].delete();
     lastMessages[interaction.guildId] = null
     AllMessages[messageIndex][name].message.forEach((e) => {
         e.delete()
     })
     AllMessages.splice(messageIndex)
+    interaction.channel.send(`Goodbye panita`);
 }
 
 function nextMusic(interaction, client) {
