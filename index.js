@@ -48,12 +48,17 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         musicQueue.splice(index)
 
         let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-        if (messageIndex == -1) return
-        lastMessages[oldState.guildId].delete();
-        AllMessages[messageIndex][name].forEach((e) => {
-            e.delete()
-        })
-        AllMessages.splice(messageIndex)
+        if (messageIndex == -1)  {
+            interaction.channel.send(`Goodbye panita`)
+            return
+        } else {
+            lastMessages[name].delete();
+            lastMessages[name] = null
+            AllMessages[messageIndex][name].message.forEach((e) => {
+                e.delete()
+            })
+            AllMessages.splice(messageIndex)
+        }
     }
 });
 
