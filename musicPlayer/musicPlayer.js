@@ -384,7 +384,7 @@ function backMusic(interaction, client) {
 }
 
 const searchVideoByName = async (name, status, message) => {
-    const apiKey = youtubeApi[2];
+    const apiKey = youtubeApi[0];
     const searchName = name
     let url = ''
     let check = status
