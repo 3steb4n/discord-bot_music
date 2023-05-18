@@ -95,7 +95,7 @@ client.on('messageCreate', async (message) => {
             }
         })
             .then(response => {
-                message.channel.send(`\`\`\`${response.data.choices[0].message.content}\`\`\``);
+                message.channel.send(`\`\`\`${response.data.choices[0].message.content.slice(0, 1998) }\`\`\``);
             })
             .catch(error => {
                 console.error(error);
