@@ -348,8 +348,9 @@ function stopMusic(interaction, client) {
         return
     } else {
 
-        lastMessages[interaction.guildId].delete();
-        lastMessages[interaction.guildId] = null
+        if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
+            lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
+        }
         AllMessages[messageIndex][name].message.forEach((e) => {
             e.delete()
         })
