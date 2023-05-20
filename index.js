@@ -50,7 +50,11 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
         if (messageIndex != -1)  {
             AllMessages[messageIndex][name].message.forEach((e) => {
-                e.delete()
+                if (!e.deleted) {
+                    e.delete();
+                } else {
+                    e = null
+                }
             })
             AllMessages.splice(messageIndex)
         }
