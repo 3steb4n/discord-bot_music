@@ -55,10 +55,9 @@ client.on('voiceStateUpdate', (oldState, newState) => {
             AllMessages.splice(messageIndex)
         }
     
-        if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
-            lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
-            lastMessages[message.guild == undefined? message.guildId : message.guild.id] = null
-
+        if (lastMessages[oldState.guild == undefined? oldState.guildId : oldState.guild.id]) {
+            lastMessages[oldState.guild == undefined? oldState.guildId : oldState.guild.id].delete();
+            lastMessages[oldState.guild == undefined? oldState.guildId : oldState.guild.id] = null
         }
     }
 });
