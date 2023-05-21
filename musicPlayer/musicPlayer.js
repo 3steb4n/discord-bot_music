@@ -346,7 +346,9 @@ function stopMusic(interaction, client) {
     let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
     if (messageIndex != -1)  {
         AllMessages[messageIndex][name].message.forEach((e) => {
-            e.delete()
+            e.delete().catch(error => {
+                console.error("Failed to delete message: ", 'Mensaje ya eliminado');
+            });
         })
         AllMessages.splice(messageIndex)
     }

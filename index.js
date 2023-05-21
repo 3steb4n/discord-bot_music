@@ -50,11 +50,9 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
         if (messageIndex != -1)  {
             AllMessages[messageIndex][name].message.forEach((e) => {
-                if (!e.deleted) {
-                    e.delete();
-                } else {
-                    e = null
-                }
+                e.delete().catch(error => {
+                    console.error("Failed to delete message: ", 'Mensaje ya eliminado');
+                });
             })
             AllMessages.splice(messageIndex)
         }
