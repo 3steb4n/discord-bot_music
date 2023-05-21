@@ -34,7 +34,7 @@ const playLofi = async (message, client) => {
             [name]: {
                 name: message.guild.name,
                 url: [lofi_24[position]],
-                videoName: 'Lofi Radio 24/7',
+                videoName: ['Lofi Radio'],
                 playing: 'lofi',
                 counter: 0,
                 connection: null,
@@ -57,7 +57,7 @@ const playLofi = async (message, client) => {
                 [name]: {
                     name: message.guild.name,
                     url: [lofi_24[position]],
-                    videoName: 'Lofi Radio 24/7',
+                    videoName: ['Lofi Radio'],
                     playing: 'lofi',
                     counter: 0,
                     connection: null,
