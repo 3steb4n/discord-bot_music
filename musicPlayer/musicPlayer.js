@@ -3,6 +3,7 @@ export { getContent, getList, playLofi, youtube_parser, searchVideoByName, valid
 import { joinVoiceChannel, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection } from "@discordjs/voice";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder } from 'discord.js';
 import { musicQueue } from "../index.js";
+import { getContent, validateUrl, youtube_parser } from "./utils.js";
 import play from 'play-dl'
 
 const lofi_24 = [
@@ -75,39 +76,53 @@ const playLofi = async (message, client) => {
 }
 
 const getList = async (message, client) => {
-    let text = ''
-    let name = message.guildId
+    let name = message.guildId;
     let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-    if (index == -1) return
+
+    if (index === -1) return;
+
     if (musicQueue[index][name].playing == 'lofi') {
-        message.channel.send(`Not avaliable for Lofi radio`);
-        return
+        message.channel.send(`Not available for Lofi radio`);
+        return;
     }
+
     const queue = musicQueue[index][name].url;
     const videoNames = musicQueue[index][name].videoName;
+    let chunks = [];
 
     for (let idx = 0; idx < queue.length; idx++) {
-        text += `\n\`${idx + 1}.\` **${videoNames[idx] || 'Unknown'}**`;
+        let newEntry = `\n\`${idx + 1}.\` **${videoNames[idx] || 'Unknown'}**`;
+
+        let lastIndex = chunks.length - 1;
+        if (lastIndex >= 0 && (chunks[lastIndex] + newEntry).length <= 2000) {
+            // If new entry fits in the last chunk, add it there
+            chunks[lastIndex] += newEntry;
+        } else {
+            // Otherwise, create a new chunk
+            chunks.push(newEntry);
+        }
     }
-    let msm;
-    if (text === '') {
-        msm = message.channel.send('***The queue is empty.***');
+
+    if (!chunks.length) {
+        chunks.push('***The queue is empty.***');
     } else {
-        msm = await message.channel.send(`***Queue list:***${text}`);
+        chunks = chunks.map((chunk, idx) => `***Queue list ${idx + 1}:***${chunk}`);
     }
 
-    let subindex = AllMessages.findIndex(item => item.hasOwnProperty(name));
+    for (let chunk of chunks) {
+        let msm = await message.channel.send(chunk);
 
-    if (subindex === -1) {
-        AllMessages.push({
-            [name]: {
-                message: [msm],
-            }
-        });
-    } else {
-        AllMessages[subindex][name].message.push(msm);
+        let subindex = AllMessages.findIndex(item => item.hasOwnProperty(name));
+        if (subindex === -1) {
+            AllMessages.push({
+                [name]: {
+                    message: [msm],
+                }
+            });
+        } else {
+            AllMessages[subindex][name].message.push(msm);
+        }
     }
-
 }
 
 const playQueueMusic = async (urlVideo, message, client) => {
@@ -168,117 +183,74 @@ const playQueueMusic = async (urlVideo, message, client) => {
 
 }
 
-const startMusic = async (message, client) => {
-    const contentMessage = message.content.split(' ');
-    let name = message.guildId
-    let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+const addSongToQueue = async (musicQueue, AllMessages, name, index, videoUrl, videoName, message, client) => {
+    if (index === -1) {
+        musicQueue.push({
+            [name]: {
+                name: message.guild.name,
+                url: [videoUrl],
+                videoName: [videoName],
+                playing: 'youtube',
+                counter: 0,
+                connection: null,
+                player: null,
+                subscription: null,
+                status: 'idle'
+            }
+        });
+        index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+        playMusic(index, name, message, client);
+    } else {
+        musicQueue[index][name].url.push(videoUrl);
+        musicQueue[index][name].videoName.push(videoName);
 
-    if (index != -1) {
-        if (musicQueue[index][name].playing == 'lofi') {
-            musicQueue[index][name].subscription.unsubscribe()
-            musicQueue[index][name].player.stop();
-            musicQueue[index][name].connection.destroy()
-            musicQueue.splice(index)
+        let embed = new EmbedBuilder()
+            .setAuthor({ name: message.guild.name, iconURL: client.user.displayAvatarURL(), url: 'https://discord.com/oauth2/authorize?client_id=828261122732851241&permissions=2097152&scope=bot' })
+            .setTitle("Song added to the queue")
+            .setDescription(`Has been added to the queue: [${videoUrl}](${videoName}) \n${musicQueue[index][name].url.length} videos in the list`)
+            .setColor('#ffb300');
+
+        let msm = await message.channel.send({ embeds: [embed] });
+        let subindex = AllMessages.findIndex(item => item.hasOwnProperty(name));
+        if (subindex === -1) {
+            AllMessages.push({
+                [name]: {
+                    message: [msm],
+                }
+            });
+        } else {
+            AllMessages[subindex][name].message.push(msm);
         }
     }
+}
+
+const startMusic = async (message, client) => {
+    const contentMessage = message.content.split(' ');
+    let name = message.guildId;
+    let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+    if (index != -1 && musicQueue[index][name].playing == 'lofi') {
+        musicQueue[index][name].subscription.unsubscribe();
+        musicQueue[index][name].player.stop();
+        musicQueue[index][name].connection.destroy();
+        musicQueue.splice(index);
+    }
+
     index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+    if (index != -1 && musicQueue[index][name].url.length == 10) {
+        message.channel.send({ content: 'Max 10 song in the queue' });
+        return;
+    }
+
     if (validateUrl(contentMessage[1])) {
-        await searchVideoByName(contentMessage[1], true, message).then(async re => {
-            if (re == false) {
-                return
-            }
-            if (index === -1) {
-                musicQueue.push({
-                    [name]: {
-                        name: message.guild.name,
-                        url: [re.videoUrl],
-                        videoName: [re.name],
-                        playing: 'youtube',
-                        counter: 0,
-                        connection: null,
-                        player: null,
-                        subscription: null,
-                        status: 'idle',
-                    }
-                });
-                name = message.guildId
-                index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-                playMusic(index, name, message, client)
-
-            } else {
-                musicQueue[index][name].url.push(re.videoUrl)
-                musicQueue[index][name].videoName.push(re.name);
-
-                let embed = new EmbedBuilder()
-                    .setAuthor({ name: message.guild.name, iconURL: client.user.displayAvatarURL(), url: 'https://discord.com/oauth2/authorize?client_id=828261122732851241&permissions=2097152&scope=bot' })
-                    .setTitle("Song added to the queue")
-                    .setDescription(`Has been added to the queue: [${musicQueue[index][name].url[musicQueue[index][name].url.length - 1]}](${musicQueue[index][name].url[musicQueue[index][name].url.length - 1]}) \n${musicQueue[index][name].url.length} videos in the list`)
-                    .setColor('#ffb300');
-
-                let msm = await message.channel.send({ embeds: [embed] });
-                let subindex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-                if (subindex === -1) {
-                    AllMessages.push({
-                        [name]: {
-                            message: [msm],
-                        }
-                    });
-                } else {
-                    AllMessages[subindex][name].message.push(msm);
-                }
+        await searchVideoByName(contentMessage[1], true, message).then(async searchResult => {
+            if (searchResult) {
+                await addSongToQueue(musicQueue, AllMessages, name, index, searchResult.videoUrl, searchResult.name, message, client);
             }
         });
     } else {
-        await searchVideoByName(getContent(contentMessage), false, message).then(async re => {
-            if (re == false) {
-                return
-            }
-            if (index === -1) {
-                musicQueue.push({
-                    [name]: {
-                        name: message.guild.name,
-                        url: [re.videoUrl],
-                        videoName: [re.name],
-                        playing: 'youtube',
-                        counter: 0,
-                        connection: null,
-                        player: null,
-                        subscription: null,
-                        status: 'idle'
-                    }
-                });
-            } else {
-                musicQueue[index][name].url.push(re.videoUrl)
-                musicQueue[index][name].videoName.push(re.name);
-            }
-            index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-
-            if (musicQueue[index][name].url.length === 1 && musicQueue[index][name].status == 'idle') {
-                if (!message.member.voice.channel) {
-                    return
-                } else {
-                    let name = message.guildId
-                    let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
-                    playMusic(index, name, message, client)
-                };
-            } else {
-                let embed = new EmbedBuilder()
-                    .setAuthor({ name: message.guild.name, iconURL: client.user.displayAvatarURL(), url: 'https://discord.com/oauth2/authorize?client_id=828261122732851241&permissions=2097152&scope=bot' })
-                    .setTitle("Song added to the queue")
-                    .setDescription(`Has been added to the queue: [${musicQueue[index][name].url[musicQueue[index][name].url.length - 1]}](${musicQueue[index][name].videoName[musicQueue[index][name].url.length - 1]}) \n${musicQueue[index][name].url.length} videos in the list`)
-                    .setColor('#ffb300');
-
-                let msm = await message.channel.send({ embeds: [embed] });
-                let subindex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-                if (subindex === -1) {
-                    AllMessages.push({
-                        [name]: {
-                            message: [msm],
-                        }
-                    });
-                } else {
-                    AllMessages[subindex][name].message.push(msm);
-                }
+        await searchVideoByName(getContent(contentMessage), false, message).then(async searchResult => {
+            if (searchResult) {
+                await addSongToQueue(musicQueue, AllMessages, name, index, searchResult.videoUrl, searchResult.name, message, client);
             }
         });
     }
@@ -312,11 +284,11 @@ const playMusic = async (index, name, message, client) => {
         .setCustomId('next')
         .setStyle('Secondary')
         .setEmoji({ name: "⏭️" });
-    
+
     const list = new ButtonBuilder()
-    .setCustomId('list')
-    .setStyle('Secondary')
-    .setEmoji({ name: "🗒️" });
+        .setCustomId('list')
+        .setStyle('Secondary')
+        .setEmoji({ name: "🗒️" });
 
 
     const row = new ActionRowBuilder()
@@ -326,9 +298,9 @@ const playMusic = async (index, name, message, client) => {
         .setAuthor({ name: message.guild.name, iconURL: client.user.displayAvatarURL(), url: 'https://discord.com/oauth2/authorize?client_id=828261122732851241&permissions=2097152&scope=bot' })
         .setDescription(`Playing [${musicQueue[index][name].videoName[counter]}](${musicQueue[index][name].url[counter]}) requested by [${message.author == undefined ? message.user.username : message.author.username}](https://discordapp.com/users/${message.author == undefined ? message.user.id : message.author.id})`)
         .setColor('#ffb300')
-    if (lastMessages[message.guild == undefined? message.guildId : message.guild.id]) {
-        lastMessages[message.guild == undefined? message.guildId : message.guild.id].delete();
-        lastMessages[message.guild == undefined? message.guildId : message.guild.id] = null
+    if (lastMessages[message.guild == undefined ? message.guildId : message.guild.id]) {
+        lastMessages[message.guild == undefined ? message.guildId : message.guild.id].delete();
+        lastMessages[message.guild == undefined ? message.guildId : message.guild.id] = null
     }
 
     lastMessages[message.guild.id] = await message.channel.send({ embeds: [embed], components: [row] });
@@ -342,20 +314,20 @@ function stopMusic(interaction, client) {
     musicQueue[index][name].player.stop();
     musicQueue[index][name].connection.destroy()
     musicQueue.splice(index)
-    
+
     let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-    if (messageIndex != -1)  {
-        AllMessages[messageIndex][name].message.forEach((e) => {
-            e.delete().catch(error => {
+    if (messageIndex != -1) {
+        AllMessages[messageIndex][name].message.forEach(async (e) => {
+            await e.delete().catch(error => {
                 console.error("Failed to delete message: ", 'Mensaje ya eliminado');
             });
         })
         AllMessages.splice(messageIndex)
     }
 
-    if (lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id]) {
-        lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id].delete();
-        lastMessages[interaction.guild == undefined? interaction.guildId : interaction.guild.id] = null
+    if (lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id]) {
+        lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id].delete();
+        lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id] = null
     }
     interaction.channel.send(`Goodbye panita`);
 }
@@ -386,7 +358,7 @@ function backMusic(interaction, client) {
 }
 
 const searchVideoByName = async (name, status, message) => {
-    const apiKey = youtubeApi[0];
+    const apiKey = youtubeApi[2];
     const searchName = name
     let url = ''
     let check = status
@@ -425,23 +397,4 @@ const searchVideoByName = async (name, status, message) => {
             message.channel.send('Theres a problem panita');
             return false
         });
-}
-
-const getContent = valueMessage => {
-    let completMessage = '';
-    for (let i = 1; i < valueMessage.length; i++) {
-        completMessage += valueMessage[i] + ' '
-    }
-    return completMessage;
-}
-
-function youtube_parser(url) {
-    var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-    var match = url.match(regExp);
-    return (match && match[7].length == 11) ? match[7] : false;
-}
-
-const validateUrl = url => {
-    const youtubeUrlPattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
-    return youtubeUrlPattern.test(url);
 }

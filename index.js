@@ -6,8 +6,10 @@ import { playLofi, getContent, stopMusic, nextMusic, backMusic, startMusic, getL
 import { lastMessages, AllMessages } from './musicPlayer/musicPlayer.js';
 import axios from 'axios';
 
-const cooldowns = new Set();
-
+const configuration = new Configuration({
+    apiKey: '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',
+});
+const openai = new OpenAIApi(configuration);
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -17,14 +19,13 @@ const client = new Client({
     ]
 });
 
-const apiKey = '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'
 
-const configuration = new Configuration({
-    apiKey: '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',
-});
-const openai = new OpenAIApi(configuration);
+const cooldowns = new Set();
+
+// all the musicQueue
 
 export const musicQueue = [];
+//number of message deleted
 const deleteCounts = {};
 
 client.on('ready', () => {
@@ -51,8 +52,8 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
         let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
         if (messageIndex != -1) {
-            AllMessages[messageIndex][name].message.forEach((e) => {
-                e.delete().catch(error => {
+            AllMessages[messageIndex][name].message.forEach(async (e) => {
+                await e.delete().catch(error => {
                     console.error("Failed to delete message: ", 'Mensaje ya eliminado');
                 });
             })
@@ -78,7 +79,7 @@ client.on('messageCreate', async (message) => {
     if (text[0] == ('!question')) {
         const contentMessage = message.content.split(' ');
         let prompt = getContent(contentMessage);
-
+        const apiKey = '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'
         axios.post('https://api.openai.com/v1/chat/completions', {
             model: 'gpt-3.5-turbo',
             messages: [
@@ -189,15 +190,17 @@ client.on('messageCreate', async (message) => {
             return message.reply('You must wait 3 minutes before using the !delete command again.');
         }
 
+        if (!message.member.permissions.has('MANAGE_MESSAGES')) {
+            message.reply("You don't have permission to use this command.");
+            return;
+        }
+
         const args = message.content.split(' ');
         const deleteCount = parseInt(args[1], 10);
 
         if (isNaN(deleteCount) || deleteCount < 1 || deleteCount > 100) {
             return message.reply('Please provide a valid number of messages to delete (1 to 99).');
         }
-
-        deleteCounts[message.guildId] = deleteCount;
-
         const next = new ButtonBuilder()
             .setCustomId('cancel_delete')
             .setStyle('Secondary')
@@ -209,10 +212,12 @@ client.on('messageCreate', async (message) => {
             .setEmoji({ name: "✅" });
         const row = new ActionRowBuilder()
             .addComponents(next, list);
-        message.channel.send({
-            content: `Are you sure you want to delete ${deleteCount} messages?, this action it will permantenly`,
+        let msm = await message.channel.send({
+            content: `Are you sure you want to delete ${deleteCount} messages?, this action it will permanently`,
             components: [row],
         });
+
+        deleteCounts[message.guildId] = [deleteCount, msm];
     }
 
     if (text[0] == ('!randomize')) {
@@ -313,10 +318,13 @@ client.on('interactionCreate', async interaction => {
             getList(interaction, client);
             break;
         case 'cancel_delete':
-                interaction.reply({ content: 'Deletion cancelled.' });
+                let sms = deleteCounts[interaction.guildId][1]
+                deleteCounts[interaction.guildId] = []
+                await sms.delete()
+                interaction.channel.send({ content: 'Deletion cancelled.' });
             break;
         case 'accept_delete':
-            const deleteCount = deleteCounts[interaction.guildId];
+            const deleteCount = deleteCounts[interaction.guildId][0];
             interaction.channel.messages.fetch({ limit: deleteCount + 1 })
                 .then(messages => {
                     interaction.channel.bulkDelete(messages, true)
@@ -343,11 +351,17 @@ client.on('interactionCreate', async interaction => {
                     console.error(`Could not fetch messages: ${error}`);
                     interaction.reply('An error occurred while trying to fetch messages.');
                 });
+            deleteCounts[interaction.guildId] = []
             break;
         default:
             console.log(`Unknown button clicked: ${customId}`);
             break;
-    }
+        }
+    await interaction.deferUpdate();
 });
 
+//producction
 client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
+
+//development
+// client.login('MTExMDMyNTg4MDk4NDcxNTQyNQ.Gp6MnA.4f4r4BDmxIs9IwBNKvoI_Zd-nzex9zAl7FqLr4');
