@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
+import { Client, GatewayIntentBits, AttachmentBuilder, PermissionsBitField } from 'discord.js';
 import { ButtonBuilder, ActionRowBuilder } from 'discord.js';
 import { Configuration, OpenAIApi } from 'openai';
 import { lolRandomize } from './leagueOfLegendsService/leagueOfLegendsRandom.js';
@@ -15,7 +15,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
-        GatewayIntentBits.GuildVoiceStates
+        GatewayIntentBits.GuildVoiceStates,
     ]
 });
 
@@ -190,7 +190,7 @@ client.on('messageCreate', async (message) => {
             return message.reply('You must wait 3 minutes before using the !delete command again.');
         }
 
-        if (!message.member.permissions.has('MANAGE_MESSAGES')) {
+        if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
             message.reply("You don't have permission to use this command.");
             return;
         }
