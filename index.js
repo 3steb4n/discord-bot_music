@@ -1,4 +1,5 @@
 import { Client, GatewayIntentBits, AttachmentBuilder } from 'discord.js';
+import { ButtonBuilder, ActionRowBuilder } from 'discord.js';
 import { Configuration, OpenAIApi } from 'openai';
 import { lolRandomize } from './leagueOfLegendsService/leagueOfLegendsRandom.js';
 import { playLofi, getContent, stopMusic, nextMusic, backMusic, startMusic, getList } from './musicPlayer/musicPlayer.js';
@@ -24,6 +25,7 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 export const musicQueue = [];
+const deleteCounts = {};
 
 client.on('ready', () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -48,7 +50,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         musicQueue.splice(index)
 
         let messageIndex = AllMessages.findIndex(item => item.hasOwnProperty(name));
-        if (messageIndex != -1)  {
+        if (messageIndex != -1) {
             AllMessages[messageIndex][name].message.forEach((e) => {
                 e.delete().catch(error => {
                     console.error("Failed to delete message: ", 'Mensaje ya eliminado');
@@ -56,10 +58,10 @@ client.on('voiceStateUpdate', (oldState, newState) => {
             })
             AllMessages.splice(messageIndex)
         }
-    
-        if (lastMessages[oldState.guild == undefined? oldState.guildId : oldState.guild.id]) {
-            lastMessages[oldState.guild == undefined? oldState.guildId : oldState.guild.id].delete();
-            lastMessages[oldState.guild == undefined? oldState.guildId : oldState.guild.id] = null
+
+        if (lastMessages[oldState.guild == undefined ? oldState.guildId : oldState.guild.id]) {
+            lastMessages[oldState.guild == undefined ? oldState.guildId : oldState.guild.id].delete();
+            lastMessages[oldState.guild == undefined ? oldState.guildId : oldState.guild.id] = null
         }
     }
 });
@@ -96,7 +98,7 @@ client.on('messageCreate', async (message) => {
             }
         })
             .then(response => {
-                message.channel.send(`\`\`\`${response.data.choices[0].message.content.slice(0, 1998) }\`\`\``);
+                message.channel.send(`\`\`\`${response.data.choices[0].message.content.slice(0, 1998)}\`\`\``);
             })
             .catch(error => {
                 console.error(error);
@@ -194,26 +196,23 @@ client.on('messageCreate', async (message) => {
             return message.reply('Please provide a valid number of messages to delete (1 to 99).');
         }
 
-        // Fetch messages and delete them
-        message.channel.bulkDelete(deleteCount + 1, true)
-            .then(deletedMessages => {
-                const count = deletedMessages.size - 1;
-                message.channel.send(`Deleted ${count} messages.`)
-                    .then(msg => {
-                        setTimeout(() => {
-                            msg.delete();
-                        }, 3000);
-                    });
+        deleteCounts[message.guildId] = deleteCount;
 
-                cooldowns.add(message.guildId);
-                setTimeout(() => {
-                    cooldowns.delete(message.guildId);
-                }, 180000); // 3 minutes in milliseconds
-            })
-            .catch(error => {
-                console.error(`Could not delete messages: ${error}`);
-                message.reply('An error occurred while trying to delete messages, This could be a permission problem, add permissions and try again.');
-            });
+        const next = new ButtonBuilder()
+            .setCustomId('cancel_delete')
+            .setStyle('Secondary')
+            .setEmoji({ name: "❌" });
+
+        const list = new ButtonBuilder()
+            .setCustomId('accept_delete')
+            .setStyle('Secondary')
+            .setEmoji({ name: "✅" });
+        const row = new ActionRowBuilder()
+            .addComponents(next, list);
+        message.channel.send({
+            content: `Are you sure you want to delete ${deleteCount} messages?, this action it will permantenly`,
+            components: [row],
+        });
     }
 
     if (text[0] == ('!randomize')) {
@@ -313,11 +312,42 @@ client.on('interactionCreate', async interaction => {
         case 'list':
             getList(interaction, client);
             break;
+        case 'cancel_delete':
+                interaction.reply({ content: 'Deletion cancelled.' });
+            break;
+        case 'accept_delete':
+            const deleteCount = deleteCounts[interaction.guildId];
+            interaction.channel.messages.fetch({ limit: deleteCount + 1 })
+                .then(messages => {
+                    interaction.channel.bulkDelete(messages, true)
+                        .then(deletedMessages => {
+                            const count = deletedMessages.size - 1;
+                            interaction.channel.send(`Deleted ${count} messages.`)
+                                .then(msg => {
+                                    setTimeout(() => {
+                                        msg.delete();
+                                    }, 3000);
+                                });
+
+                            cooldowns.add(interaction.guildId);
+                            setTimeout(() => {
+                                cooldowns.delete(interaction.guildId);
+                            }, 180000); // 3 minutes in milliseconds
+                        })
+                        .catch(error => {
+                            console.error(`Could not delete messages: ${error}`);
+                            interaction.reply('An error occurred while trying to delete messages, This could be a permission problem, add permissions and try again.');
+                        });
+                })
+                .catch(error => {
+                    console.error(`Could not fetch messages: ${error}`);
+                    interaction.reply('An error occurred while trying to fetch messages.');
+                });
+            break;
         default:
             console.log(`Unknown button clicked: ${customId}`);
             break;
     }
-    await interaction.deferUpdate();
 });
 
 client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
