@@ -194,9 +194,14 @@ client.on('messageCreate', async (message) => {
             message.reply("You don't have permission to use this command.");
             return;
         }
+        if (!message.guild.members.me.permissions.has(PermissionsBitField.Flags.ManageMessages)) {
+            message.reply("I don't have permission to use this command.");
+            return;
+        }
 
         const args = message.content.split(' ');
         const deleteCount = parseInt(args[1], 10);
+        
 
         if (isNaN(deleteCount) || deleteCount < 1 || deleteCount > 100) {
             return message.reply('Please provide a valid number of messages to delete (1 to 99).');
