@@ -333,12 +333,12 @@ client.on('interactionCreate', async interaction => {
             interaction.channel.messages.fetch({ limit: deleteCount + 1 })
                 .then(messages => {
                     interaction.channel.bulkDelete(messages, true)
-                        .then(deletedMessages => {
+                        .then( deletedMessages => {
                             const count = deletedMessages.size - 1;
                             interaction.channel.send(`Deleted ${count} messages.`)
                                 .then(msg => {
-                                    setTimeout(() => {
-                                        msg.delete();
+                                    setTimeout(async () => {
+                                        await msg.delete();
                                     }, 3000);
                                 });
 
@@ -347,14 +347,14 @@ client.on('interactionCreate', async interaction => {
                                 cooldowns.delete(interaction.guildId);
                             }, 180000); // 3 minutes in milliseconds
                         })
-                        .catch(error => {
+                        .catch( async error => {
                             console.error(`Could not delete messages: ${error}`);
-                            interaction.reply('An error occurred while trying to delete messages, This could be a permission problem, add permissions and try again.');
+                            await interaction.reply('An error occurred while trying to delete messages, This could be a permission problem, add permissions and try again.');
                         });
                 })
-                .catch(error => {
+                .catch(async error => {
                     console.error(`Could not fetch messages: ${error}`);
-                    interaction.reply('An error occurred while trying to fetch messages.');
+                    await interaction.reply('An error occurred while trying to fetch messages.');
                 });
             deleteCounts[interaction.guildId] = []
             break;
