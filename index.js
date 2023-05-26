@@ -39,7 +39,7 @@ client.on('ready', () => {
     });
 });
 
-client.on('voiceStateUpdate', (oldState, newState) => {
+client.on('voiceStateUpdate', async (oldState, newState) => {
     // Check if the bot was disconnected
     if (oldState.channelId && !newState.channelId && oldState.member.user.id === client.user.id) {
         let name = oldState.guild.id
@@ -61,7 +61,9 @@ client.on('voiceStateUpdate', (oldState, newState) => {
         }
 
         if (lastMessages[oldState.guild == undefined ? oldState.guildId : oldState.guild.id]) {
-            lastMessages[oldState.guild == undefined ? oldState.guildId : oldState.guild.id].delete();
+            await lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id].delete().catch(error => {
+                console.error("Failed to delete message: ", 'Mensaje ya eliminado');
+            });
             lastMessages[oldState.guild == undefined ? oldState.guildId : oldState.guild.id] = null
         }
     }
