@@ -306,7 +306,7 @@ const playMusic = async (index, name, message, client) => {
     lastMessages[message.guild.id] = await message.channel.send({ embeds: [embed], components: [row] });
 }
 
-function stopMusic(interaction, client) {
+async function stopMusic(interaction, client) {
     let name = interaction.guildId
     let index = musicQueue.findIndex(item => item.hasOwnProperty(name));
     if (index == -1) return
@@ -326,7 +326,9 @@ function stopMusic(interaction, client) {
     }
 
     if (lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id]) {
-        lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id].delete();
+        await lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id].delete().catch(error => {
+            console.error("Failed to delete message: ", 'Mensaje ya eliminado');
+        });
         lastMessages[interaction.guild == undefined ? interaction.guildId : interaction.guild.id] = null
     }
     interaction.channel.send(`Goodbye panita`);
