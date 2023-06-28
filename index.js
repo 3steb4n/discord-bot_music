@@ -369,7 +369,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 //producction
-// client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
+client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
 
 //development
-client.login('MTExMDMyNTg4MDk4NDcxNTQyNQ.Gp6MnA.4f4r4BDmxIs9IwBNKvoI_Zd-nzex9zAl7FqLr4');
+// client.login('MTExMDMyNTg4MDk4NDcxNTQyNQ.Gp6MnA.4f4r4BDmxIs9IwBNKvoI_Zd-nzex9zAl7FqLr4');
