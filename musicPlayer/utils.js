@@ -16,3 +16,10 @@ export const validateUrl = url => {
     const youtubeUrlPattern = /^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$/;
     return youtubeUrlPattern.test(url);
 }
+
+export function playlistIds(url) {
+    const urlParams = new URLSearchParams(url);
+    const playlistId = urlParams.get('list');
+
+    return { playlistId };
+}

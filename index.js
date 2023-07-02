@@ -72,7 +72,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 client.on('messageCreate', async (message) => {
     const text = message.content.split(' ');
-    if (text[0] == ('!p')) {
+    if (text[0] == ('!u')) {
         if (!message.member.voice.channel) {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
@@ -369,7 +369,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 //producction
-client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
+//client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
 
 //development
-// client.login('MTExMDMyNTg4MDk4NDcxNTQyNQ.Gp6MnA.4f4r4BDmxIs9IwBNKvoI_Zd-nzex9zAl7FqLr4');
+client.login('ODk0NjE3MzIwNjU4NDM2MTQ2.Guduk0.LS93-yj_bXwi69B8OLDtAJHQ9xwbly-T_v98t4');

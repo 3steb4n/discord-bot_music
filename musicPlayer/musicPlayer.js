@@ -3,7 +3,7 @@ export { getContent, getList, playLofi, youtube_parser, searchVideoByName, valid
 import { joinVoiceChannel, AudioPlayerStatus, createAudioPlayer, createAudioResource, getVoiceConnection } from "@discordjs/voice";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder } from 'discord.js';
 import { musicQueue } from "../index.js";
-import { getContent, validateUrl, youtube_parser } from "./utils.js";
+import { getContent, validateUrl, youtube_parser, playlistIds } from "./utils.js";
 import play from 'play-dl'
 
 const lofi_24 = [
@@ -184,7 +184,9 @@ const playQueueMusic = async (urlVideo, message, client) => {
 }
 
 const addSongToQueue = async (musicQueue, AllMessages, name, index, videoUrl, videoName, message, client) => {
+    console.log(index)
     if (index === -1) {
+        console.log(videoUrl, '-----------------------------------')
         musicQueue.push({
             [name]: {
                 name: message.guild.name,
@@ -201,6 +203,7 @@ const addSongToQueue = async (musicQueue, AllMessages, name, index, videoUrl, vi
         index = musicQueue.findIndex(item => item.hasOwnProperty(name));
         playMusic(index, name, message, client);
     } else {
+        console.log('----------------34fd-------------------')
         musicQueue[index][name].url.push(videoUrl);
         musicQueue[index][name].videoName.push(videoName);
 
@@ -236,6 +239,8 @@ const startMusic = async (message, client) => {
     }
 
     index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+
+  
     if (index != -1 && musicQueue[index][name].url.length == 10) {
         message.channel.send({ content: 'Max 10 song in the queue' });
         return;
@@ -244,8 +249,21 @@ const startMusic = async (message, client) => {
     if (validateUrl(contentMessage[1])) {
         await searchVideoByName(contentMessage[1], true, message).then(async searchResult => {
             if (searchResult) {
-                await addSongToQueue(musicQueue, AllMessages, name, index, searchResult.videoUrl, searchResult.name, message, client);
+                if (Array.isArray(searchResult)) {
+                    for (let o = 0; o < searchResult.length; o++) {
+                        if (index != -1 && musicQueue[index][name].url.length == 10) {
+                            message.channel.send({ content: 'Max 10 song in the queue' });
+                            break;
+                        }
+                        index = musicQueue.findIndex(item => item.hasOwnProperty(name));
+                        await addSongToQueue(musicQueue, AllMessages, name, index, searchResult[o].url, searchResult[o].title, message, client);
+                    }
+                } else {
+                    console.log(contentMessage[1]);
+                    await addSongToQueue(musicQueue, AllMessages, name, index, searchResult.videoUrl, searchResult.name, message, client);   
+                }
             }
+
         });
     } else {
         await searchVideoByName(getContent(contentMessage), false, message).then(async searchResult => {
@@ -360,15 +378,26 @@ function backMusic(interaction, client) {
 }
 
 const searchVideoByName = async (name, status, message) => {
-    const apiKey = youtubeApi[2];
+    const  apiKey = youtubeApi[2];
     const searchName = name
     let url = ''
     let check = status
     let youtubeId = youtube_parser(searchName)
-    if (check == true) {
-        url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(youtubeId)}&key=${apiKey}`;
-    } else {
+    let playList = null;
 
+    if (check == true) {
+        const matches = name.match(/v=([a-zA-Z0-9_-]+).*list=([a-zA-Z0-9_-]+)/);
+        console.log(matches);
+        if (matches && matches[1] && matches[2]) {
+            playList = true;
+            let maxResults = 4;
+            console.log(playlistIds(name))
+            url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistIds(name).playlistId}&maxResults=${maxResults}&key=${apiKey}`;
+        } else {
+            url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(youtubeId)}&key=${apiKey}`;
+        }
+
+    } else {
         url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${encodeURIComponent(searchName)}&type=video&key=${apiKey}`;
     }
     return fetch(url)
@@ -385,8 +414,18 @@ const searchVideoByName = async (name, status, message) => {
                     return false
                 }
                 if (check) {
-                    const videoUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
-                    return { name: data.items[0].snippet.title, videoUrl: videoUrl }
+                    if (playList) {
+                        let listVideos = []
+                        data.items.map(item => {
+                            if (item.snippet.title != 'Deleted video') {
+                                listVideos.push({ 'title': item.snippet.title, 'url': `https://www.youtube.com/watch?v=${item.snippet.resourceId.videoId}` });
+                            }
+                        });
+                        return listVideos;
+                    } else {
+                        const videoUrl = `https://www.youtube.com/watch?v=${youtubeId}`;
+                        return { name: data.items[0].snippet.title, videoUrl: videoUrl }
+                    }
 
                 } else {
                     const videoId = data.items[0].id.videoId;
