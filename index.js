@@ -4,11 +4,12 @@ import { Configuration, OpenAIApi } from 'openai';
 import { lolRandomize } from './leagueOfLegendsService/leagueOfLegendsRandom.js';
 import { playLofi, getContent, stopMusic, nextMusic, backMusic, startMusic, getList } from './musicPlayer/musicPlayer.js';
 import { lastMessages, AllMessages } from './musicPlayer/musicPlayer.js';
+import 'dotenv/config.js'
 import axios from 'axios';
 import promptLayer from './public/promptlayer.js';
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: process.env.API_KEY_YOUTUBE,
 });
 const openai = new OpenAIApi(configuration);
 const client = new Client({
@@ -72,7 +73,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 client.on('messageCreate', async (message) => {
     const text = message.content.split(' ');
-    if (text[0] == ('!p')) {
+    if (text[0] == ('!u')) {
         if (!message.member.voice.channel) {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
@@ -82,7 +83,6 @@ client.on('messageCreate', async (message) => {
     if (text[0] == ('!question')) {
         const contentMessage = message.content.split(' ');
         let prompt = getContent(contentMessage);
-        const apiKey = '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'
         const requestStartTime = Date.now();
         const requestEndTime = requestStartTime;
 
@@ -369,7 +369,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 //producction
-client.login('ODI4MjYxMTIyNzMyODUxMjQx.G5zOl-.5aQdonYax6fqWFoDE5G_yhyja86HQlzLG2457U');
+client.login(procces.env.API_KEY_PRODUCTION);
 
 //development
-//client.login('ODk0NjE3MzIwNjU4NDM2MTQ2.Guduk0.LS93-yj_bXwi69B8OLDtAJHQ9xwbly-T_v98t4');
+//client.login(process.env.API_KEY_DEVELOPMENT);
