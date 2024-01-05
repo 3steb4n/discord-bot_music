@@ -258,6 +258,7 @@ const startMusic = async (message, client) => {
                         index = musicQueue.findIndex(item => item.hasOwnProperty(name));
                         await addSongToQueue(musicQueue, AllMessages, name, index, searchResult[o].url, searchResult[o].title, message, client);
                     }
+                    console.log('finish');
                 } else {
                     console.log(contentMessage[1]);
                     await addSongToQueue(musicQueue, AllMessages, name, index, searchResult.videoUrl, searchResult.name, message, client);   
@@ -390,7 +391,7 @@ const searchVideoByName = async (name, status, message) => {
         console.log(matches);
         if (matches && matches[1] && matches[2]) {
             playList = true;
-            let maxResults = 4;
+            let maxResults = 10;
             console.log(playlistIds(name))
             url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistIds(name).playlistId}&maxResults=${maxResults}&key=${apiKey}`;
         } else {

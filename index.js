@@ -4,7 +4,7 @@ import { Configuration, OpenAIApi } from 'openai';
 import { lolRandomize } from './leagueOfLegendsService/leagueOfLegendsRandom.js';
 import { playLofi, getContent, stopMusic, nextMusic, backMusic, startMusic, getList } from './musicPlayer/musicPlayer.js';
 import { lastMessages, AllMessages } from './musicPlayer/musicPlayer.js';
-import 'dotenv/config.js'
+import 'dotenv/config'
 import axios from 'axios';
 import promptLayer from './public/promptlayer.js';
 
@@ -369,7 +369,7 @@ client.on('interactionCreate', async interaction => {
 });
 
 //producction
-client.login(procces.env.API_KEY_PRODUCTION);
+//client.login(process.env.API_KEY_PRODUCTION);
 
 //development
-//client.login(process.env.API_KEY_DEVELOPMENT);
+client.login(process.env.API_KEY_DEVELOPMENT);
