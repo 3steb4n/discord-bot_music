@@ -73,7 +73,7 @@ client.on('voiceStateUpdate', (oldState, newState) => {
 
 client.on('messageCreate', async (message) => {
     const text = message.content.split(' ');
-    if (text[0] == ('!u')) {
+    if (text[0] == ('!p')) {
         if (!message.member.voice.channel) {
             return message.reply('¡Please join first to the channel dont be dumb!');
         }
